@@ -1,0 +1,16 @@
+# Compiler files
+contracts/cache/
+contracts/out/
+contracts/lib/
+
+# Ignores development broadcast logs
+!contracts/broadcast
+contracts/broadcast/*/31337/
+contracts/broadcast/**/dry-run/
+
+# Docs
+contracts/docs/
+
+# Dotenv file
+.env
+.DS_Store
