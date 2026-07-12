@@ -47,3 +47,11 @@ export function parseTokenAmount(value: string, decimals: number): bigint {
   if (trimmed === "") return 0n;
   return parseUnits(trimmed, decimals);
 }
+
+export function safeParseTokenAmount(value: string, decimals: number): bigint {
+  try {
+    return parseTokenAmount(value, decimals);
+  } catch {
+    return 0n;
+  }
+}
