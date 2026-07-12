@@ -1,8 +1,7 @@
-使用 Viem 为 TokenBank 搭建一个简单的前端
+搭建一个前端项目，目标是学习与链上合约交互，会有各种类型的合约，其对应的页面资源应各自独立。
 
-技术栈：Next.js、TypeScript、Tailwind CSS 4、Wagmi v2 + Viem v2、RainbowKit (钱包连接)、React Query (状态管理)
-
-功能：
+技术栈：Next.js、TypeScript、Tailwind CSS 4、Viem v2
+现在为 TokenBank合约 搭建一个简单的前端：
 1. 连接钱包
 2. 钱包连接后显示当前 Token 的余额，并且可以存款(点击按钮存款)到 TokenBank
 3. 存款后显示用户存款金额。
