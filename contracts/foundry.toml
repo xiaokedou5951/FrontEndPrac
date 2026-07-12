@@ -4,3 +4,10 @@ out = "out"
 libs = ["lib"]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+
+# 命名 RPC 端点，可在 forge 命令里直接用别名引用（不带 $ 前缀）
+# 示例: forge script script/Counter.s.sol --rpc-url local --broadcast
+#       forge script script/Counter.s.sol --rpc-url sepolia --broadcast
+[rpc_endpoints]
+local = "http://127.0.0.1:8545"
+sepolia = "${SEPOLIA_RPC_URL}"
