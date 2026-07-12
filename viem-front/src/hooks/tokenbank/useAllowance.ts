@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Address } from "viem";
-import { tokenBankAbi } from "@/contracts/abis";
-import { tokenBankAddress } from "@/config/contracts";
+import { erc20Abi } from "@/contracts/erc20Abi";
+import { tokenAddress } from "@/config/shared";
 import { useWallet } from "@/context/WalletContext";
 
 type Return = {
@@ -11,34 +11,38 @@ type Return = {
   refetch: () => Promise<void>;
 };
 
-export function useDepositBalance(account: Address | null, enabled = true): Return {
+export function useAllowance(
+  account: Address | null,
+  spender: Address | null,
+  enabled = true,
+): Return {
   const { publicClient } = useWallet();
   const [data, setData] = useState<bigint | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const refetch = useCallback(async () => {
-    if (!account || !tokenBankAddress) {
+    if (!account || !spender || !tokenAddress) {
       setData(null);
       setError(null);
       return;
     }
     try {
-      const balance = await publicClient.readContract({
-        address: tokenBankAddress,
-        abi: tokenBankAbi,
-        functionName: "balanceOf",
-        args: [account],
+      const allowance = await publicClient.readContract({
+        address: tokenAddress,
+        abi: erc20Abi,
+        functionName: "allowance",
+        args: [account, spender],
       });
-      setData(balance);
+      setData(allowance);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e : new Error(String(e)));
     }
-  }, [account, publicClient]);
+  }, [account, spender, publicClient]);
 
   useEffect(() => {
-    if (!enabled || !account || !tokenBankAddress) {
+    if (!enabled || !account || !spender || !tokenAddress) {
       setData(null);
       setError(null);
       setIsLoading(false);
@@ -54,7 +58,7 @@ export function useDepositBalance(account: Address | null, enabled = true): Retu
       active = false;
       clearInterval(interval);
     };
-  }, [enabled, account, refetch]);
+  }, [enabled, account, spender, refetch]);
 
   return { data, isLoading, error, refetch };
 }

@@ -6,8 +6,9 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { AmountInput } from "@/components/ui/AmountInput";
 import { formatTokenAmount, safeParseTokenAmount } from "@/lib/viem";
-import { tokenBankAbi } from "@/contracts/abis";
-import { tokenBankAddress, chain } from "@/config/contracts";
+import { tokenBankAbi } from "@/contracts/tokenBankAbi";
+import { chain } from "@/config/shared";
+import { tokenBankAddress } from "@/config/tokenbank";
 import type { TokenMetadata } from "@/hooks/useTokenMetadata";
 import type { RefreshFns } from "./types";
 

@@ -9,7 +9,7 @@ import {
   type PublicClient,
   type WalletClient,
 } from "viem";
-import { chain, rpcUrl } from "@/config/contracts";
+import { chain, rpcUrl } from "@/config/shared";
 
 let publicClientInstance: PublicClient | null = null;
 

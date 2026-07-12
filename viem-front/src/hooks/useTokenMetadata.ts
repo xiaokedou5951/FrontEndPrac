@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { erc20Abi } from "@/contracts/abis";
-import { tokenAddress } from "@/config/contracts";
+import { erc20Abi } from "@/contracts/erc20Abi";
+import { tokenAddress } from "@/config/shared";
 import { useWallet } from "@/context/WalletContext";
 
 export type TokenMetadata = {

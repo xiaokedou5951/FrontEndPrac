@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Address } from "viem";
-import { erc20Abi } from "@/contracts/abis";
-import { tokenAddress } from "@/config/contracts";
+import { tokenBankAbi } from "@/contracts/tokenBankAbi";
+import { tokenBankAddress } from "@/config/tokenbank";
 import { useWallet } from "@/context/WalletContext";
 
 type Return = {
@@ -11,38 +11,34 @@ type Return = {
   refetch: () => Promise<void>;
 };
 
-export function useAllowance(
-  account: Address | null,
-  spender: Address | null,
-  enabled = true,
-): Return {
+export function useDepositBalance(account: Address | null, enabled = true): Return {
   const { publicClient } = useWallet();
   const [data, setData] = useState<bigint | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   const refetch = useCallback(async () => {
-    if (!account || !spender || !tokenAddress) {
+    if (!account || !tokenBankAddress) {
       setData(null);
       setError(null);
       return;
     }
     try {
-      const allowance = await publicClient.readContract({
-        address: tokenAddress,
-        abi: erc20Abi,
-        functionName: "allowance",
-        args: [account, spender],
+      const balance = await publicClient.readContract({
+        address: tokenBankAddress,
+        abi: tokenBankAbi,
+        functionName: "balanceOf",
+        args: [account],
       });
-      setData(allowance);
+      setData(balance);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e : new Error(String(e)));
     }
-  }, [account, spender, publicClient]);
+  }, [account, publicClient]);
 
   useEffect(() => {
-    if (!enabled || !account || !spender || !tokenAddress) {
+    if (!enabled || !account || !tokenBankAddress) {
       setData(null);
       setError(null);
       setIsLoading(false);
@@ -58,7 +54,7 @@ export function useAllowance(
       active = false;
       clearInterval(interval);
     };
-  }, [enabled, account, spender, refetch]);
+  }, [enabled, account, refetch]);
 
   return { data, isLoading, error, refetch };
 }

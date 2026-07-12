@@ -24,10 +24,17 @@ export default function HomePage() {
           </p>
         </Link>
 
-        <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-6">
-          <h2 className="text-lg font-semibold text-gray-400">更多 Demo</h2>
-          <p className="mt-2 text-sm text-gray-400">敬请期待</p>
-        </div>
+        <Link
+          href="/nft-market"
+          className="group rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition hover:border-indigo-300 hover:shadow-md"
+        >
+          <h2 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">
+            NFT Market →
+          </h2>
+          <p className="mt-2 text-sm text-gray-500">
+            上架 / 购买 / 取消 NFT，并实时监听链上上架与买卖事件
+          </p>
+        </Link>
       </div>
     </main>
   );

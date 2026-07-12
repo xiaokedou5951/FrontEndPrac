@@ -3,13 +3,13 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useWallet } from "@/context/WalletContext";
-import { configOk, configError, tokenBankAddress } from "@/config/contracts";
+import { configOk, configError, tokenBankAddress } from "@/config/tokenbank";
 import { useTokenMetadata } from "@/hooks/useTokenMetadata";
-import { useTokenBalance } from "@/hooks/useTokenBalance";
-import { useAllowance } from "@/hooks/useAllowance";
-import { useDepositBalance } from "@/hooks/useDepositBalance";
+import { useTokenBalance } from "@/hooks/tokenbank/useTokenBalance";
+import { useAllowance } from "@/hooks/tokenbank/useAllowance";
+import { useDepositBalance } from "@/hooks/tokenbank/useDepositBalance";
 import { Card } from "@/components/ui/Card";
-import { WalletBar } from "@/components/tokenbank/WalletBar";
+import { WalletBar } from "@/components/shared/WalletBar";
 import { TokenBalanceCard } from "@/components/tokenbank/TokenBalanceCard";
 import { AllowanceCard } from "@/components/tokenbank/AllowanceCard";
 import { DepositCard } from "@/components/tokenbank/DepositCard";
