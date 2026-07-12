@@ -1,0 +1,10 @@
+使用 Viem 为 TokenBank 搭建一个简单的前端
+
+技术栈：Next.js、TypeScript、Tailwind CSS 4、Wagmi v2 + Viem v2、RainbowKit (钱包连接)、React Query (状态管理)
+
+功能：
+1. 连接钱包
+2. 钱包连接后显示当前 Token 的余额，并且可以存款(点击按钮存款)到 TokenBank
+3. 存款后显示用户存款金额。
+4. 支持用户取款(点击按钮取款)。
+5. 授权后显示当前授权额度。
