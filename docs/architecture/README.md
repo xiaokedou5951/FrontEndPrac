@@ -4,7 +4,7 @@
 
 ## 一句话架构
 
-Next.js 15 App Router 客户端应用，通过 Viem v2 直接与 EIP-1193 钱包及本地 anvil 链上的合约交互。当前包含 TokenBank（存取款）与 NFTMarket（NFT 买卖）两个独立功能，资源按功能拆分到 `tokenbank/`、`nftmarket/`、`shared/` 三组目录；页面层单次调用数据 Hooks 并通过 RefreshFns 下发刷新能力，NFTMarket 通过 `watchEvent` + `getContractEvents` 实时监听链上事件。`viem-front/test/nftmarket/` 下提供独立的铸造与事件监听脚本（HTTP 轮询 + WebSocket 推送），不依赖前端运行时。
+Next.js 15 App Router 客户端应用，通过 Viem v2 直接与 EIP-1193 钱包及本地 anvil 链上的合约交互。当前包含 TokenBank（存取款）与 NFTMarket（NFT 买卖）两个独立功能，资源按功能拆分到 `tokenbank/`、`nftmarket/`、`shared/` 三组目录；页面层单次调用数据 Hooks 并通过 RefreshFns 下发刷新能力，NFTMarket 通过 `watchEvent` + `getContractEvents` 实时监听链上事件。`viem-front/scripts/deploy-contracts.sh` 一键部署 4 个合约并把地址写回 `.env.local`；`viem-front/test/nftmarket/` 下提供独立的铸造与事件监听脚本（HTTP 轮询 + WebSocket 推送），不依赖前端运行时。
 
 ## 3 分钟导航
 
@@ -43,6 +43,8 @@ Next.js 15 App Router 客户端应用，通过 Viem v2 直接与 EIP-1193 钱包
 - [PRD：TokenBank 需求文档](../prd/TokenBank需求文档.txt) — 业务需求
 - [NFTMarket 合约源码](../../contracts/src/NFTMarket.sol) — NFTMarket 合约
 - [SimpleNft 合约源码](../../contracts/src/SimpleNft.sol) — NFTMarket 测试用 ERC721
+- [一键部署脚本](../../viem-front/scripts/deploy-contracts.sh) — 部署 4 个合约并写回 `.env.local`
+- [部署脚本说明](../../viem-front/scripts/README.md) — 用法 / 环境变量 / 故障排查
 - [NFTMarket 测试脚本](../../viem-front/test/nftmarket/) — 铸造 + 事件监听（HTTP/WS）
 - [前端设计与实现计划](../../.trae/documents/tokenbank-frontend-design.md) — 实施步骤
 
@@ -53,3 +55,4 @@ Next.js 15 App Router 客户端应用，通过 Viem v2 直接与 EIP-1193 钱包
 | 2026-07-12 | 初始创建全套架构文档（仅 TokenBank） | — |
 | 2026-07-13 | 补充 NFTMarket 功能、按功能拆分资源结构、事件订阅机制 | — |
 | 2026-07-13 | 新增 SimpleNft 合约、测试脚本（铸造 + HTTP/WS 事件监听）、WebSocket 支持说明 | — |
+| 2026-07-13 | 新增 `scripts/deploy-contracts.sh` 一键部署脚本，相关文档同步更新 | — |
