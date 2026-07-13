@@ -18,3 +18,4 @@ contracts/docs/
 node_modules/
 .next/
 out/
+viem-front/.env.local.bak.*
