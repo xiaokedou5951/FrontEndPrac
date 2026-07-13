@@ -1,10 +1,10 @@
-# TokenBank 前端架构文档
+# 前端架构文档
 
-> 一句话定位：本文档是 TokenBank 前端架构的入口地图，回答「架构文档在哪、各回答什么问题」，受众是所有进入本目录的人。
+> 一句话定位：本文档是前端架构的入口地图，回答「架构文档在哪、各回答什么问题」，受众是所有进入本目录的人。
 
 ## 一句话架构
 
-Next.js 15 App Router 客户端应用，通过 Viem v2 直接与 EIP-1193 钱包及本地 anvil 链上的 ERC20 + TokenBank 合约交互，页面层单次调用数据 Hooks 并通过 RefreshFns 下发刷新能力。
+Next.js 15 App Router 客户端应用，通过 Viem v2 直接与 EIP-1193 钱包及本地 anvil 链上的合约交互。当前包含 TokenBank（存取款）与 NFTMarket（NFT 买卖）两个独立功能，资源按功能拆分到 `tokenbank/`、`nftmarket/`、`shared/` 三组目录；页面层单次调用数据 Hooks 并通过 RefreshFns 下发刷新能力，NFTMarket 通过 `watchEvent` + `getContractEvents` 实时监听链上事件。
 
 ## 3 分钟导航
 
@@ -41,10 +41,12 @@ Next.js 15 App Router 客户端应用，通过 Viem v2 直接与 EIP-1193 钱包
 ## 相关文档
 
 - [PRD：TokenBank 需求文档](../prd/TokenBank需求文档.txt) — 业务需求
+- [NFTMarket 合约源码](../../contracts/src/NFTMarket.sol) — NFTMarket 合约
 - [前端设计与实现计划](../../.trae/documents/tokenbank-frontend-design.md) — 实施步骤
 
 ## 变更记录
 
 | 日期 | 变更 | 作者 |
 |---|---|---|
-| 2026-07-12 | 初始创建全套架构文档 | — |
+| 2026-07-12 | 初始创建全套架构文档（仅 TokenBank） | — |
+| 2026-07-13 | 补充 NFTMarket 功能、按功能拆分资源结构、事件订阅机制 | — |
