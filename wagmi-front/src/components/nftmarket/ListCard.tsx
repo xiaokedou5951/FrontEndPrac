@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { isAddress, type Address } from "viem";
+import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { useWallet } from "@/context/WalletContext";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -9,8 +10,7 @@ import { AmountInput } from "@/components/ui/AmountInput";
 import { AddressInput } from "@/components/ui/AddressInput";
 import { safeParseTokenAmount } from "@/lib/viem";
 import { nftMarketAbi } from "@/contracts/nftMarketAbi";
-import { chain } from "@/config/shared";
-import { nftMarketAddress } from "@/config/nftmarket";
+import { getNftMarketAddress } from "@/config/nftmarket";
 import type { TokenMetadata } from "@/hooks/useTokenMetadataWagmi";
 import type { RefreshFn } from "./types";
 
@@ -20,58 +20,63 @@ type Props = {
 };
 
 export function ListCard({ metadata, refresh }: Props) {
-  const { account, walletClient, publicClient } = useWallet();
+  const { chainId } = useAccount();
+  const { account } = useWallet();
   const [nftContract, setNftContract] = useState("");
   const [tokenId, setTokenId] = useState("");
   const [price, setPrice] = useState("");
-  const [pending, setPending] = useState(false);
   const [txError, setTxError] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
+
+  const { writeContract, isPending, data: txHash, error } = useWriteContract();
 
   const decimals = metadata?.decimals ?? 18;
   const symbol = metadata?.symbol ?? "TOKEN";
   const parsedPrice = safeParseTokenAmount(price, decimals);
   const addressValid = isAddress(nftContract);
   const tokenIdNum = tokenId.trim() === "" ? null : BigInt(tokenId.trim());
+  const nftMarketAddress = chainId ? getNftMarketAddress(chainId) : null;
 
   const canSubmit =
     !!account &&
-    !!walletClient &&
-    !pending &&
+    !isPending &&
+    !!nftMarketAddress &&
     addressValid &&
     tokenIdNum !== null &&
     parsedPrice > 0n;
 
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash: txHash,
+  });
+
   const handleList = async () => {
-    if (!account || !walletClient || !nftMarketAddress) return;
+    if (!account || !nftMarketAddress) return;
     if (!addressValid || tokenIdNum === null || parsedPrice <= 0n) return;
-    setPending(true);
     setTxError(null);
     setResult(null);
     try {
-      const hash = await walletClient.writeContract({
-        account,
+      await writeContract({
         address: nftMarketAddress,
         abi: nftMarketAbi,
         functionName: "list",
         args: [nftContract as Address, tokenIdNum, parsedPrice],
-        chain,
       });
-      const receipt = await publicClient.waitForTransactionReceipt({ hash });
-      if (receipt.status === "reverted") {
-        throw new Error("交易执行失败（合约 revert）");
-      }
-      setResult("上架成功，listingId 请见下方事件日志");
-      setNftContract("");
-      setTokenId("");
-      setPrice("");
-      await refresh();
     } catch (e) {
       setTxError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setPending(false);
     }
   };
+
+  if (isConfirmed && txHash) {
+    setResult("上架成功，listingId 请见下方事件日志");
+    setNftContract("");
+    setTokenId("");
+    setPrice("");
+    refresh();
+  }
+
+  if (error) {
+    setTxError(error.message);
+  }
 
   return (
     <Card title="上架 NFT">
@@ -84,7 +89,7 @@ export function ListCard({ metadata, refresh }: Props) {
             <AddressInput
               value={nftContract}
               onChange={setNftContract}
-              disabled={pending}
+              disabled={isPending || isConfirming}
               invalid={nftContract !== "" && !addressValid}
             />
           </div>
@@ -99,7 +104,7 @@ export function ListCard({ metadata, refresh }: Props) {
                 if (v === "" || /^\d+$/.test(v)) setTokenId(v);
               }}
               placeholder="0"
-              disabled={pending}
+              disabled={isPending || isConfirming}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-right font-mono text-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
             />
           </div>
@@ -109,14 +114,14 @@ export function ListCard({ metadata, refresh }: Props) {
               value={price}
               onChange={setPrice}
               suffix={symbol}
-              disabled={pending}
+              disabled={isPending || isConfirming}
             />
           </div>
           <p className="text-xs text-gray-400">
             上架前请先用「授权 NFT」卡片为市场地址授权，否则购买时 NFT 转账会失败。
           </p>
-          <Button onClick={handleList} disabled={!canSubmit} loading={pending} className="w-full">
-            上架
+          <Button onClick={handleList} disabled={!canSubmit} loading={isPending || isConfirming} className="w-full">
+            {isConfirming ? "确认中..." : isPending ? "上架中..." : "上架"}
           </Button>
           {result && <p className="text-sm text-green-600">{result}</p>}
           {txError && <p className="text-sm text-red-600">{txError}</p>}

@@ -1,6 +1,7 @@
+import { useAccount } from "wagmi";
 import { useReadContracts } from "wagmi";
 import { erc20Abi } from "@/contracts/erc20Abi";
-import { tokenAddress } from "@/config/shared";
+import { getTokenAddress } from "@/config/shared";
 
 export type TokenMetadata = {
   name: string;
@@ -16,6 +17,9 @@ type Return = {
 };
 
 export function useTokenMetadataWagmi(enabled = true): Return {
+  const { chainId } = useAccount();
+  const tokenAddress = chainId ? getTokenAddress(chainId) : null;
+
   const { data, isLoading, error, refetch } = useReadContracts({
     contracts: [
       {

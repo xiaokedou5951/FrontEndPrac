@@ -1,14 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { useWallet } from "@/context/WalletContext";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { formatTokenAmount } from "@/lib/viem";
 import { erc20Abi } from "@/contracts/erc20Abi";
 import { nftMarketAbi } from "@/contracts/nftMarketAbi";
-import { tokenAddress, chain } from "@/config/shared";
-import { nftMarketAddress } from "@/config/nftmarket";
+import { getTokenAddress } from "@/config/shared";
+import { getNftMarketAddress } from "@/config/nftmarket";
 import type { TokenMetadata } from "@/hooks/useTokenMetadataWagmi";
 import type { ListingInfo, RefreshFn } from "./types";
 
@@ -23,23 +24,27 @@ function truncate(addr: string): string {
 }
 
 export function BuyCard({ metadata, listings, refresh }: Props) {
-  const { account, walletClient, publicClient } = useWallet();
+  const { chainId } = useAccount();
+  const { account, publicClient } = useWallet();
   const [listingId, setListingId] = useState("");
   const [allowance, setAllowance] = useState<bigint | null>(null);
-  const [pending, setPending] = useState(false);
-  const [approving, setApproving] = useState(false);
   const [txError, setTxError] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
+  const [action, setAction] = useState<"buy" | "approve" | null>(null);
+
+  const { writeContract, isPending, data: txHash, error } = useWriteContract();
 
   const decimals = metadata?.decimals ?? 18;
   const symbol = metadata?.symbol ?? "TOKEN";
+  const tokenAddress = chainId ? getTokenAddress(chainId) : null;
+  const nftMarketAddress = chainId ? getNftMarketAddress(chainId) : null;
 
   const listingIdNum = listingId.trim() === "" ? null : BigInt(listingId.trim());
   const selected =
     listingIdNum !== null ? listings.find((l) => l.listingId === listingIdNum) : undefined;
 
   const fetchAllowance = useCallback(async () => {
-    if (!account || !tokenAddress || !nftMarketAddress) {
+    if (!account || !tokenAddress || !nftMarketAddress || !publicClient) {
       setAllowance(null);
       return;
     }
@@ -54,7 +59,7 @@ export function BuyCard({ metadata, listings, refresh }: Props) {
     } catch {
       setAllowance(null);
     }
-  }, [account, publicClient]);
+  }, [account, tokenAddress, nftMarketAddress, publicClient]);
 
   useEffect(() => {
     fetchAllowance();
@@ -63,60 +68,64 @@ export function BuyCard({ metadata, listings, refresh }: Props) {
   const insufficientAllowance =
     !!selected && allowance !== null && allowance < selected.price;
 
+  const { isLoading: isConfirming, isSuccess: isConfirmed } = useWaitForTransactionReceipt({
+    hash: txHash,
+  });
+
   const handleApprove = async () => {
-    if (!account || !walletClient || !tokenAddress || !nftMarketAddress || !selected) return;
-    setApproving(true);
+    if (!account || !tokenAddress || !nftMarketAddress || !selected) return;
     setTxError(null);
+    setAction("approve");
     try {
-      const hash = await walletClient.writeContract({
-        account,
+      await writeContract({
         address: tokenAddress,
         abi: erc20Abi,
         functionName: "approve",
         args: [nftMarketAddress, selected.price],
-        chain,
       });
-      await publicClient.waitForTransactionReceipt({ hash });
-      await fetchAllowance();
     } catch (e) {
       setTxError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setApproving(false);
     }
   };
 
   const handleBuy = async () => {
-    if (!account || !walletClient || !nftMarketAddress || listingIdNum === null) return;
-    setPending(true);
+    if (!account || !nftMarketAddress || listingIdNum === null) return;
     setTxError(null);
     setResult(null);
+    setAction("buy");
     try {
-      const hash = await walletClient.writeContract({
-        account,
+      await writeContract({
         address: nftMarketAddress,
         abi: nftMarketAbi,
         functionName: "buyNFT",
         args: [listingIdNum],
-        chain,
       });
-      const receipt = await publicClient.waitForTransactionReceipt({ hash });
-      if (receipt.status === "reverted") {
-        throw new Error("交易执行失败（合约 revert）");
-      }
-      setResult("购买成功");
-      setListingId("");
-      await Promise.all([refresh(), fetchAllowance()]);
     } catch (e) {
       setTxError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setPending(false);
     }
   };
 
+  if (isConfirmed && txHash) {
+    if (action === "approve") {
+      fetchAllowance();
+    } else {
+      setResult("购买成功");
+      setListingId("");
+      refresh();
+      fetchAllowance();
+    }
+    setAction(null);
+  }
+
+  if (error) {
+    setTxError(error.message);
+    setAction(null);
+  }
+
   const canBuy =
     !!account &&
-    !!walletClient &&
-    !pending &&
+    !isPending &&
+    !!nftMarketAddress &&
     listingIdNum !== null &&
     !insufficientAllowance;
 
@@ -137,7 +146,7 @@ export function BuyCard({ metadata, listings, refresh }: Props) {
                 if (v === "" || /^\d+$/.test(v)) setListingId(v);
               }}
               placeholder="0"
-              disabled={pending}
+              disabled={isPending || isConfirming}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-right font-mono text-lg outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50"
             />
           </div>
@@ -163,16 +172,16 @@ export function BuyCard({ metadata, listings, refresh }: Props) {
               <Button
                 variant="secondary"
                 onClick={handleApprove}
-                disabled={approving}
-                loading={approving}
+                disabled={isPending || isConfirming}
+                loading={isPending || isConfirming}
                 className="w-full"
               >
-                授权支付代币
+                {isConfirming ? "确认中..." : isPending ? "授权中..." : "授权支付代币"}
               </Button>
             </div>
           )}
-          <Button onClick={handleBuy} disabled={!canBuy} loading={pending} className="w-full">
-            购买
+          <Button onClick={handleBuy} disabled={!canBuy} loading={isPending || isConfirming} className="w-full">
+            {isConfirming ? "确认中..." : isPending ? "购买中..." : "购买"}
           </Button>
           {result && <p className="text-sm text-green-600">{result}</p>}
           {txError && <p className="text-sm text-red-600">{txError}</p>}

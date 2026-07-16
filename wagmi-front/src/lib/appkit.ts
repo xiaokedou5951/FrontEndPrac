@@ -1,7 +1,6 @@
 import { createAppKit } from "@reown/appkit/react";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import { defineChain, type AppKitNetwork } from "@reown/appkit/networks";
-import { rpcUrl, chain as viemChain } from "@/config/shared";
 
 export const projectId = process.env.NEXT_PUBLIC_REOWN_PROJECT_ID;
 
@@ -11,22 +10,57 @@ if (!projectId) {
   );
 }
 
-const appKitChain: AppKitNetwork = defineChain({
-  id: viemChain.id,
-  caipNetworkId: `eip155:${viemChain.id}`,
+const appKitFoundry = defineChain({
+  id: 31337,
+  caipNetworkId: "eip155:31337",
   chainNamespace: "eip155",
-  name: viemChain.name,
-  nativeCurrency: viemChain.nativeCurrency,
+  name: "Foundry",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
   rpcUrls: {
-    default: { http: [rpcUrl] },
-    public: { http: [rpcUrl] },
+    default: { http: ["http://127.0.0.1:8545"] },
   },
   blockExplorers: {
     default: { name: "Foundry", url: "" },
   },
+  testnet: true,
 });
 
-export const networks = [appKitChain] as [AppKitNetwork, ...AppKitNetwork[]];
+const appKitSepolia = defineChain({
+  id: 11155111,
+  caipNetworkId: "eip155:11155111",
+  chainNamespace: "eip155",
+  name: "Sepolia",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+  rpcUrls: {
+    default: { http: ["https://rpc.sepolia.org"] },
+    public: { http: ["https://rpc.sepolia.org"] },
+  },
+  blockExplorers: {
+    default: { name: "Etherscan", url: "https://sepolia.etherscan.io" },
+  },
+  testnet: true,
+});
+
+const appKitPolygon = defineChain({
+  id: 137,
+  caipNetworkId: "eip155:137",
+  chainNamespace: "eip155",
+  name: "Polygon",
+  nativeCurrency: { name: "MATIC", symbol: "MATIC", decimals: 18 },
+  rpcUrls: {
+    default: { http: ["https://polygon-rpc.com"] },
+    public: { http: ["https://polygon-rpc.com"] },
+  },
+  blockExplorers: {
+    default: { name: "PolygonScan", url: "https://polygonscan.com" },
+  },
+  testnet: false,
+});
+
+export const networks = [appKitFoundry, appKitSepolia, appKitPolygon] as [
+  AppKitNetwork,
+  ...AppKitNetwork[],
+];
 
 export const wagmiAdapter = new WagmiAdapter({
   networks,
@@ -34,13 +68,12 @@ export const wagmiAdapter = new WagmiAdapter({
   ssr: true,
 });
 
-// 自定义链在 WalletConnect 网络列表中没有默认图标，提供一个占位图标
 const chainIconSvg = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="%23626262"/><text x="50" y="58" font-size="32" text-anchor="middle" fill="white">F</text></svg>`;
 
 createAppKit({
   adapters: [wagmiAdapter],
   networks,
-  defaultNetwork: appKitChain,
+  defaultNetwork: appKitFoundry,
   projectId,
   metadata: {
     name: "TokenBank Demo",
@@ -49,7 +82,7 @@ createAppKit({
     icons: [],
   },
   chainImages: {
-    [appKitChain.id]: chainIconSvg,
+    [appKitFoundry.id]: chainIconSvg,
   },
   features: {
     analytics: false,

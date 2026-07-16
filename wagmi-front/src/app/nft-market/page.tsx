@@ -2,9 +2,9 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
+import { useAccount } from "wagmi";
 import { useWallet } from "@/context/WalletContext";
-import { nftMarketAddress, configOk, configError } from "@/config/nftmarket";
-import { tokenAddress } from "@/config/shared";
+import { getNftMarketAddress, getConfigOk, getConfigError } from "@/config/nftmarket";
 import { useTokenMetadataWagmi } from "@/hooks/useTokenMetadataWagmi";
 import { useListingsWagmi } from "@/hooks/nftmarket/useListingsWagmi";
 import { useNFTMarketEventsWagmi } from "@/hooks/nftmarket/useNFTMarketEventsWagmi";
@@ -18,38 +18,19 @@ import { ListingsTable } from "@/components/nftmarket/ListingsTable";
 import { EventLogCard } from "@/components/nftmarket/EventLogCard";
 
 export default function NFTMarketPage() {
+  const { chainId } = useAccount();
   const { account } = useWallet();
   const connected = !!account;
 
-  // paymentToken 与 MyERC20 一致，复用代币元数据用于价格展示
-  const metadata = useTokenMetadataWagmi(!!tokenAddress);
+  const configOk = chainId ? getConfigOk(chainId) : false;
+  const configError = chainId ? getConfigError(chainId) : null;
+  const nftMarketAddress = chainId ? getNftMarketAddress(chainId) : null;
+
+  const metadata = useTokenMetadataWagmi(!!chainId);
   const listings = useListingsWagmi(configOk);
   const events = useNFTMarketEventsWagmi(configOk);
 
   const refreshListings = useMemo(() => listings.refetch, [listings.refetch]);
-
-  if (!configOk) {
-    return (
-      <main className="mx-auto max-w-2xl px-4 py-10">
-        <Card title="配置缺失">
-          <p className="text-sm text-red-600">{configError}</p>
-          <p className="mt-3 text-sm text-gray-500">
-            请在{" "}
-            <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs">
-              viem-front/.env.local
-            </code>{" "}
-            中配置 NEXT_PUBLIC_NFT_MARKET_ADDRESS 后重启开发服务器。
-          </p>
-          <Link
-            href="/"
-            className="mt-4 inline-block text-sm text-indigo-600 hover:underline"
-          >
-            ← 返回首页
-          </Link>
-        </Card>
-      </main>
-    );
-  }
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8">
@@ -61,11 +42,24 @@ export default function NFTMarketPage() {
           <h1 className="mt-1 text-2xl font-bold text-gray-900">NFT Market</h1>
           <p className="text-sm text-gray-500">上架 / 购买 / 取消，并实时监听链上事件</p>
           <p className="mt-1 font-mono text-xs text-gray-400">
-            合约：{nftMarketAddress}
+            合约：{nftMarketAddress ?? "未连接钱包"}
           </p>
         </div>
         <WalletBar />
       </header>
+
+      {chainId && !configOk && (
+        <Card title="配置缺失" className="mb-4">
+          <p className="text-sm text-red-600">{configError}</p>
+          <p className="mt-3 text-sm text-gray-500">
+            请在{" "}
+            <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs">
+              wagmi-front/.env.local
+            </code>{" "}
+            中配置当前链的合约地址后重启开发服务器。
+          </p>
+        </Card>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <ApproveNFTCard />

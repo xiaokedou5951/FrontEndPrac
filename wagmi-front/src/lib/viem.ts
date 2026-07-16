@@ -1,33 +1,4 @@
-import {
-  createPublicClient,
-  createWalletClient,
-  custom,
-  http,
-  formatUnits,
-  parseUnits,
-  type EIP1193Provider,
-  type PublicClient,
-  type WalletClient,
-} from "viem";
-import { chain, rpcUrl } from "@/config/shared";
-
-let publicClientInstance: PublicClient | null = null;
-
-export function getPublicClient(): PublicClient {
-  if (publicClientInstance) return publicClientInstance;
-  publicClientInstance = createPublicClient({
-    chain,
-    transport: http(rpcUrl),
-  });
-  return publicClientInstance;
-}
-
-export function getWalletClient(ethereum: EIP1193Provider): WalletClient {
-  return createWalletClient({
-    chain,
-    transport: custom(ethereum),
-  });
-}
+import { formatUnits, parseUnits } from "viem";
 
 export function formatTokenAmount(
   value: bigint,

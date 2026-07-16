@@ -1,23 +1,30 @@
-import { foundry } from "viem/chains";
-import { defineChain, isAddress, type Address, type Chain } from "viem";
+import { foundry, sepolia, polygon } from "viem/chains";
+import { isAddress, type Address, type Chain } from "viem";
 
-// 共享配置：RPC、链定义、底层 ERC20 代币地址（TokenBank 与 NFTMarket 共用）
+export const chains = [foundry, sepolia, polygon] as const;
 
-export const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL ?? "http://127.0.0.1:8545";
+export type SupportedChainId = (typeof chains)[number]["id"];
 
-const envChainId = process.env.NEXT_PUBLIC_CHAIN_ID ? Number(process.env.NEXT_PUBLIC_CHAIN_ID) : 31337;
+export function getChain(chainId: number): Chain | undefined {
+  return chains.find((c) => c.id === chainId);
+}
 
-export const chain: Chain =
-  envChainId === 31337
-    ? foundry
-    : defineChain({
-        id: envChainId,
-        name: process.env.NEXT_PUBLIC_CHAIN_NAME ?? "Custom Chain",
-        nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-        rpcUrls: { default: { http: [rpcUrl] } },
-        testnet: true,
-      });
+export const defaultChain = foundry;
 
-const rawTokenAddress = process.env.NEXT_PUBLIC_TOKEN_ADDRESS;
-export const tokenAddress: Address | null =
-  rawTokenAddress && isAddress(rawTokenAddress) ? (rawTokenAddress as Address) : null;
+function getEnvTokenAddress(chainId: number): string | undefined {
+  switch (chainId) {
+    case foundry.id:
+      return process.env.NEXT_PUBLIC_TOKEN_ADDRESS_LOCAL;
+    case sepolia.id:
+      return process.env.NEXT_PUBLIC_TOKEN_ADDRESS_SEPOLIA;
+    case polygon.id:
+      return process.env.NEXT_PUBLIC_TOKEN_ADDRESS_POLYGON;
+    default:
+      return undefined;
+  }
+}
+
+export function getTokenAddress(chainId: number): Address | null {
+  const raw = getEnvTokenAddress(chainId);
+  return raw && isAddress(raw) ? (raw as Address) : null;
+}

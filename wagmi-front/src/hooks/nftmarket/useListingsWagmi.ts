@@ -1,7 +1,8 @@
 import { useMemo } from "react";
+import { useAccount } from "wagmi";
 import { useReadContract, useReadContracts } from "wagmi";
 import { nftMarketAbi } from "@/contracts/nftMarketAbi";
-import { nftMarketAddress } from "@/config/nftmarket";
+import { getNftMarketAddress } from "@/config/nftmarket";
 import type { ListingInfo } from "@/components/nftmarket/types";
 
 type Return = {
@@ -12,6 +13,9 @@ type Return = {
 };
 
 export function useListingsWagmi(enabled = true): Return {
+  const { chainId } = useAccount();
+  const nftMarketAddress = chainId ? getNftMarketAddress(chainId) : null;
+
   const {
     data: nextIdData,
     isLoading: nextIdLoading,
@@ -37,7 +41,7 @@ export function useListingsWagmi(enabled = true): Return {
         functionName: "listings" as const,
         args: [BigInt(i)] as const,
       })),
-    [count],
+    [count, nftMarketAddress],
   );
 
   const {

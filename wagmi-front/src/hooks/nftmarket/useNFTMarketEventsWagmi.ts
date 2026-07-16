@@ -1,10 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useAccount } from "wagmi";
 import type { Address } from "viem";
 import { useContractEvents, useWatchContractEvent } from "wagmi";
 import { nftMarketAbi } from "@/contracts/nftMarketAbi";
-import { nftMarketAddress } from "@/config/nftmarket";
+import { getNftMarketAddress } from "@/config/nftmarket";
 import type { MarketLog, MarketEventName } from "@/components/nftmarket/types";
 
 const MAX_LOGS = 200;
@@ -78,6 +79,9 @@ function formatLogForConsole(log: MarketLog): string {
 }
 
 export function useNFTMarketEventsWagmi(enabled = true) {
+  const { chainId } = useAccount();
+  const nftMarketAddress = chainId ? getNftMarketAddress(chainId) : null;
+
   const [logs, setLogs] = useState<MarketLog[]>([]);
   const [isWatching, setIsWatching] = useState(false);
   const [error, setError] = useState<string | null>(null);

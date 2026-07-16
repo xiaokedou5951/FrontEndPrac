@@ -1,9 +1,8 @@
 "use client";
 
 import { createContext, useContext, useMemo, type ReactNode } from "react";
-import { useAccount, useDisconnect, useWalletClient } from "wagmi";
+import { useAccount, useDisconnect, usePublicClient, useWalletClient } from "wagmi";
 import type { Address, PublicClient, WalletClient } from "viem";
-import { getPublicClient } from "@/lib/viem";
 
 type WalletState = {
   account: Address | null;
@@ -11,7 +10,7 @@ type WalletState = {
   isConnecting: boolean;
   error: string | null;
   walletClient: WalletClient | null;
-  publicClient: PublicClient;
+  publicClient: PublicClient | null;
   connect: () => Promise<void>;
   disconnect: () => void;
 };
@@ -19,12 +18,11 @@ type WalletState = {
 const WalletContext = createContext<WalletState | undefined>(undefined);
 
 export function WalletProvider({ children }: { children: ReactNode }) {
-  const publicClient = useMemo(() => getPublicClient(), []);
+  const publicClient = usePublicClient();
   const { address, chainId, isConnecting } = useAccount();
   const { disconnect } = useDisconnect();
   const { data: walletClient } = useWalletClient();
 
-  // 连接动作由 AppKit 的 useAppKit 在 WalletBar 中触发，这里保留 API 兼容性
   const connect = async () => {};
 
   const value = useMemo<WalletState>(
@@ -34,7 +32,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       isConnecting,
       error: null,
       walletClient: walletClient ?? null,
-      publicClient,
+      publicClient: publicClient ?? null,
       connect,
       disconnect: () => disconnect(),
     }),
