@@ -8,6 +8,19 @@ function truncateAddress(addr: string): string {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
+function getChainDisplayName(chainId: number): string {
+  switch (chainId) {
+    case 31337:
+      return "Local";
+    case 11155111:
+      return "Sepolia";
+    case 137:
+      return "Polygon";
+    default:
+      return `Chain ${chainId}`;
+  }
+}
+
 export function WalletBar() {
   const { open } = useAppKit();
   const { account, chainId, isConnecting, disconnect } = useWallet();
@@ -27,11 +40,9 @@ export function WalletBar() {
       <span className="rounded-lg bg-gray-100 px-3 py-1.5 font-mono text-sm text-gray-700">
         {truncateAddress(account)}
       </span>
-      {chainId !== null && (
-        <span className="rounded-lg bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700">
-          Chain {chainId}
-        </span>
-      )}
+      <Button variant="secondary" size="sm" onClick={() => open({ view: "Networks" })}>
+        {chainId ? getChainDisplayName(chainId) : "选择网络"}
+      </Button>
       <Button variant="secondary" onClick={disconnect}>
         断开
       </Button>

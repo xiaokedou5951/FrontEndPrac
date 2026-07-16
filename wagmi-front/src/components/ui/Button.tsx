@@ -1,9 +1,11 @@
 import { type ButtonHTMLAttributes, type ReactNode } from "react";
 
 type Variant = "primary" | "secondary" | "danger";
+type Size = "sm" | "md";
 
 type ButtonProps = {
   variant?: Variant;
+  size?: Size;
   loading?: boolean;
   children: ReactNode;
 } & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children">;
@@ -17,8 +19,14 @@ const variantClasses: Record<Variant, string> = {
     "bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500",
 };
 
+const sizeClasses: Record<Size, string> = {
+  sm: "px-3 py-1 text-xs",
+  md: "px-4 py-2 text-sm",
+};
+
 export function Button({
   variant = "primary",
+  size = "md",
   loading = false,
   disabled,
   type = "button",
@@ -27,10 +35,11 @@ export function Button({
   ...rest
 }: ButtonProps) {
   const classes = [
-    "inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+    "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
     "disabled:cursor-not-allowed disabled:opacity-50",
     variantClasses[variant],
+    sizeClasses[size],
     className,
   ]
     .filter(Boolean)

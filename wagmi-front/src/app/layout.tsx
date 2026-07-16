@@ -4,8 +4,8 @@ import { Providers } from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "TokenBank Demo",
-  description: "基于 Next.js + Viem v2 的链上合约交互演示",
+  title: "Web3 Demo",
+  description: "基于 Next.js + Wagmi 的链上合约交互演示",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
