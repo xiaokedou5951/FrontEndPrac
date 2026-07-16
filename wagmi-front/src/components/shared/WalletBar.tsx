@@ -1,5 +1,6 @@
 "use client";
 
+import { useAppKit } from "@reown/appkit/react";
 import { useWallet } from "@/context/WalletContext";
 import { Button } from "@/components/ui/Button";
 
@@ -8,15 +9,15 @@ function truncateAddress(addr: string): string {
 }
 
 export function WalletBar() {
-  const { account, chainId, isConnecting, error, connect, disconnect } = useWallet();
+  const { open } = useAppKit();
+  const { account, chainId, isConnecting, disconnect } = useWallet();
 
   if (!account) {
     return (
       <div className="flex items-center gap-3">
-        <Button onClick={() => connect()} loading={isConnecting}>
+        <Button onClick={() => open()} loading={isConnecting}>
           连接钱包
         </Button>
-        {error && <span className="text-sm text-red-600">{error}</span>}
       </div>
     );
   }
