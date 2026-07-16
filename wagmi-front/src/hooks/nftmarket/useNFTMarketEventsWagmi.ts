@@ -2,9 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Address } from "viem";
-import { nftMarketAbi, nftMarketEvents } from "@/contracts/nftMarketAbi";
+import { useContractEvents, useWatchContractEvent } from "wagmi";
+import { nftMarketAbi } from "@/contracts/nftMarketAbi";
 import { nftMarketAddress } from "@/config/nftmarket";
-import { useWallet } from "@/context/WalletContext";
 import type { MarketLog, MarketEventName } from "@/components/nftmarket/types";
 
 const MAX_LOGS = 200;
@@ -77,91 +77,62 @@ function formatLogForConsole(log: MarketLog): string {
   return parts.join(" ");
 }
 
-/**
- * 后台监听 NFTMarket 的 NFTListed / NFTSold / NFTListingCancelled 事件。
- * - 启动时拉取历史事件
- * - 通过 watchEvent 订阅新区块中的事件
- * - 每条事件同时打印到浏览器控制台和组件状态
- */
-export function useNFTMarketEvents(enabled = true) {
-  const { publicClient } = useWallet();
+export function useNFTMarketEventsWagmi(enabled = true) {
   const [logs, setLogs] = useState<MarketLog[]>([]);
   const [isWatching, setIsWatching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const knownIdsRef = useRef<Set<string>>(new Set());
 
+  const {
+    data: pastLogs,
+    isLoading,
+    error: pastError,
+  } = useContractEvents({
+    address: nftMarketAddress ?? undefined,
+    abi: nftMarketAbi,
+    fromBlock: 0n,
+    query: {
+      enabled: enabled && !!nftMarketAddress,
+    },
+  });
+
+  const addLogs = useCallback((incoming: MarketLog[]) => {
+    const fresh = incoming.filter((l) => !knownIdsRef.current.has(l.id));
+    if (fresh.length === 0) return;
+    fresh.forEach((l) => {
+      knownIdsRef.current.add(l.id);
+      console.log(`[NFTMarket][${l.eventName}] ${formatLogForConsole(l)}`, l);
+    });
+    setLogs((prev) => [...fresh, ...prev].slice(0, MAX_LOGS));
+  }, []);
+
   useEffect(() => {
-    if (!enabled || !nftMarketAddress) return;
-    const marketAddress = nftMarketAddress;
-    let unwatch: (() => void) | undefined;
-    let cancelled = false;
-
-    const addLogs = (incoming: MarketLog[]) => {
-      const fresh = incoming.filter((l) => !knownIdsRef.current.has(l.id));
-      if (fresh.length === 0) return;
-      fresh.forEach((l) => {
-        knownIdsRef.current.add(l.id);
-        // 后台日志打印
-        console.log(
-          `[NFTMarket][${l.eventName}] ${formatLogForConsole(l)}`,
-          l,
-        );
+    if (!pastLogs) return;
+    const mapped = (pastLogs as unknown as DecodedLog[])
+      .map(toMarketLog)
+      .sort((a, b) => {
+        const an = a.blockNumber ?? 0n;
+        const bn = b.blockNumber ?? 0n;
+        return an < bn ? -1 : an > bn ? 1 : 0;
       });
-      // 新事件排在最前
-      setLogs((prev) => [...fresh, ...prev].slice(0, MAX_LOGS));
-    };
+    addLogs(mapped);
+  }, [pastLogs, addLogs]);
 
-    const init = async () => {
-      try {
-        // 1. 拉取历史事件，按区块号升序排列
-        const past = (await publicClient.getContractEvents({
-          address: marketAddress,
-          abi: nftMarketAbi,
-          fromBlock: 0n,
-        })) as unknown as DecodedLog[];
+  useEffect(() => {
+    setIsWatching(enabled && !isLoading && !pastError);
+    setError(pastError?.message ?? null);
+  }, [enabled, isLoading, pastError]);
 
-        if (cancelled) return;
-
-        const pastMapped = past
-          .map(toMarketLog)
-          .sort((a, b) => {
-            const an = a.blockNumber ?? 0n;
-            const bn = b.blockNumber ?? 0n;
-            return an < bn ? -1 : an > bn ? 1 : 0;
-          });
-        addLogs(pastMapped);
-
-        // 2. 订阅后续新事件
-        unwatch = publicClient.watchEvent({
-          address: marketAddress,
-          events: nftMarketEvents,
-          pollingInterval: 2000,
-          onLogs: (events) => {
-            const mapped = (events as unknown as DecodedLog[]).map(toMarketLog);
-            addLogs(mapped);
-          },
-        });
-
-        if (cancelled) {
-          unwatch();
-          return;
-        }
-        setIsWatching(true);
-        setError(null);
-      } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : String(e));
-        }
-      }
-    };
-
-    init();
-
-    return () => {
-      cancelled = true;
-      if (unwatch) unwatch();
-    };
-  }, [enabled, publicClient]);
+  useWatchContractEvent({
+    address: nftMarketAddress ?? undefined,
+    abi: nftMarketAbi,
+    enabled: enabled && !!nftMarketAddress,
+    pollingInterval: 2000,
+    onLogs: (events) => {
+      const mapped = (events as unknown as DecodedLog[]).map(toMarketLog);
+      addLogs(mapped);
+    },
+  });
 
   const clear = useCallback(() => {
     knownIdsRef.current.clear();

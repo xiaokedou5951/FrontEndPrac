@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { formatTokenAmount } from "@/lib/viem";
-import type { TokenMetadata } from "@/hooks/useTokenMetadata";
+import type { TokenMetadata } from "@/hooks/useTokenMetadataWagmi";
 import type { MarketLog } from "./types";
 
 type Props = {

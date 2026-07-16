@@ -11,7 +11,7 @@ import { safeParseTokenAmount } from "@/lib/viem";
 import { nftMarketAbi } from "@/contracts/nftMarketAbi";
 import { chain } from "@/config/shared";
 import { nftMarketAddress } from "@/config/nftmarket";
-import type { TokenMetadata } from "@/hooks/useTokenMetadata";
+import type { TokenMetadata } from "@/hooks/useTokenMetadataWagmi";
 import type { RefreshFn } from "./types";
 
 type Props = {

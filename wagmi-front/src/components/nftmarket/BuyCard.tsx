@@ -9,7 +9,7 @@ import { erc20Abi } from "@/contracts/erc20Abi";
 import { nftMarketAbi } from "@/contracts/nftMarketAbi";
 import { tokenAddress, chain } from "@/config/shared";
 import { nftMarketAddress } from "@/config/nftmarket";
-import type { TokenMetadata } from "@/hooks/useTokenMetadata";
+import type { TokenMetadata } from "@/hooks/useTokenMetadataWagmi";
 import type { ListingInfo, RefreshFn } from "./types";
 
 type Props = {

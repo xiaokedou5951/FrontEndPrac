@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useWallet } from "@/context/WalletContext";
 import { nftMarketAddress, configOk, configError } from "@/config/nftmarket";
 import { tokenAddress } from "@/config/shared";
-import { useTokenMetadata } from "@/hooks/useTokenMetadata";
-import { useListings } from "@/hooks/nftmarket/useListings";
-import { useNFTMarketEvents } from "@/hooks/nftmarket/useNFTMarketEvents";
+import { useTokenMetadataWagmi } from "@/hooks/useTokenMetadataWagmi";
+import { useListingsWagmi } from "@/hooks/nftmarket/useListingsWagmi";
+import { useNFTMarketEventsWagmi } from "@/hooks/nftmarket/useNFTMarketEventsWagmi";
 import { Card } from "@/components/ui/Card";
 import { WalletBar } from "@/components/shared/WalletBar";
 import { ListCard } from "@/components/nftmarket/ListCard";
@@ -22,9 +22,9 @@ export default function NFTMarketPage() {
   const connected = !!account;
 
   // paymentToken 与 MyERC20 一致，复用代币元数据用于价格展示
-  const metadata = useTokenMetadata(!!tokenAddress);
-  const listings = useListings(configOk);
-  const events = useNFTMarketEvents(configOk);
+  const metadata = useTokenMetadataWagmi(!!tokenAddress);
+  const listings = useListingsWagmi(configOk);
+  const events = useNFTMarketEventsWagmi(configOk);
 
   const refreshListings = useMemo(() => listings.refetch, [listings.refetch]);
 

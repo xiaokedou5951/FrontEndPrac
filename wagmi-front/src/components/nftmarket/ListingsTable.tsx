@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/Card";
 import { formatTokenAmount } from "@/lib/viem";
-import type { TokenMetadata } from "@/hooks/useTokenMetadata";
+import type { TokenMetadata } from "@/hooks/useTokenMetadataWagmi";
 import type { ListingInfo } from "./types";
 
 type Props = {
