@@ -19,3 +19,4 @@ node_modules/
 .next/
 out/
 viem-front/.env.local.bak.*
+wagmi-front/.env.local.bak.*
