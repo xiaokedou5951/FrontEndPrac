@@ -76,8 +76,8 @@ createAppKit({
   defaultNetwork: appKitFoundry,
   projectId,
   metadata: {
-    name: "TokenBank Demo",
-    description: "基于 Next.js + Viem 的链上合约交互演示",
+    name: "Web3 Demo",
+    description: "基于 Next.js + Wagmi 的链上合约交互演示",
     url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
     icons: [],
   },

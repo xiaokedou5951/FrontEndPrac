@@ -1,6 +1,7 @@
 "use client";
 
-import { useAppKit } from "@reown/appkit/react";
+import { useEffect, useRef } from "react";
+import { useAppKit, useAppKitState } from "@reown/appkit/react";
 import { useWallet } from "@/context/WalletContext";
 import { Button } from "@/components/ui/Button";
 
@@ -22,8 +23,17 @@ function getChainDisplayName(chainId: number): string {
 }
 
 export function WalletBar() {
-  const { open } = useAppKit();
+  const { open, close } = useAppKit();
+  const { open: isModalOpen } = useAppKitState();
   const { account, chainId, isConnecting, disconnect } = useWallet();
+  const previousChainId = useRef<number | null>(chainId);
+
+  useEffect(() => {
+    if (chainId && previousChainId.current !== chainId && isModalOpen) {
+      close();
+    }
+    previousChainId.current = chainId;
+  }, [chainId, isModalOpen, close]);
 
   if (!account) {
     return (
