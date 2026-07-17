@@ -1,4 +1,4 @@
-import { foundry, sepolia, polygon } from "viem/chains";
+import { foundry, sepolia, polygon, optimism } from "viem/chains";
 import { isAddress, type Address } from "viem";
 import { getTokenAddress } from "./shared";
 
@@ -10,6 +10,8 @@ function getEnvTokenBankAddress(chainId: number): string | undefined {
       return process.env.NEXT_PUBLIC_TOKENBANK_ADDRESS_SEPOLIA;
     case polygon.id:
       return process.env.NEXT_PUBLIC_TOKENBANK_ADDRESS_POLYGON;
+    case optimism.id:
+      return process.env.NEXT_PUBLIC_TOKENBANK_ADDRESS_OPTIMISM;
     default:
       return undefined;
   }
@@ -23,6 +25,8 @@ function getChainName(chainId: number): string {
       return "Sepolia (11155111)";
     case polygon.id:
       return "Polygon (137)";
+    case optimism.id:
+      return "Optimism (10)";
     default:
       return `未知链 (${chainId})`;
   }
@@ -36,6 +40,8 @@ function getChainEnvSuffix(chainId: number): string | null {
       return "SEPOLIA";
     case polygon.id:
       return "POLYGON";
+    case optimism.id:
+      return "OPTIMISM";
     default:
       return null;
   }
@@ -53,7 +59,7 @@ export function getConfigOk(chainId: number): boolean {
 export function getConfigError(chainId: number): string | null {
   const suffix = getChainEnvSuffix(chainId);
   if (!suffix) {
-    return `当前链 ${getChainName(chainId)} 不受支持。请切换到 Local (31337)、Sepolia (11155111) 或 Polygon (137)。`;
+    return `当前链 ${getChainName(chainId)} 不受支持。请切换到 Local (31337)、Sepolia (11155111)、Polygon (137) 或 Optimism (10)。`;
   }
 
   const tokenAddr = getTokenAddress(chainId);
@@ -64,7 +70,9 @@ export function getConfigError(chainId: number): string | null {
   const issues: string[] = [];
   const tokenRaw = chainId === foundry.id ? process.env.NEXT_PUBLIC_TOKEN_ADDRESS_LOCAL
     : chainId === sepolia.id ? process.env.NEXT_PUBLIC_TOKEN_ADDRESS_SEPOLIA
-    : process.env.NEXT_PUBLIC_TOKEN_ADDRESS_POLYGON;
+    : chainId === polygon.id ? process.env.NEXT_PUBLIC_TOKEN_ADDRESS_POLYGON
+    : chainId === optimism.id ? process.env.NEXT_PUBLIC_TOKEN_ADDRESS_OPTIMISM
+    : undefined;
 
   const bankRaw = getEnvTokenBankAddress(chainId);
 

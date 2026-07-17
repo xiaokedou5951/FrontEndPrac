@@ -1,7 +1,7 @@
-import { foundry, sepolia, polygon } from "viem/chains";
+import { foundry, sepolia, polygon, optimism } from "viem/chains";
 import { isAddress, type Address, type Chain } from "viem";
 
-export const chains = [foundry, sepolia, polygon] as const;
+export const chains = [foundry, sepolia, polygon, optimism] as const;
 
 export type SupportedChainId = (typeof chains)[number]["id"];
 
@@ -19,6 +19,8 @@ function getEnvTokenAddress(chainId: number): string | undefined {
       return process.env.NEXT_PUBLIC_TOKEN_ADDRESS_SEPOLIA;
     case polygon.id:
       return process.env.NEXT_PUBLIC_TOKEN_ADDRESS_POLYGON;
+    case optimism.id:
+      return process.env.NEXT_PUBLIC_TOKEN_ADDRESS_OPTIMISM;
     default:
       return undefined;
   }

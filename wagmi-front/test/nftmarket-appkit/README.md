@@ -95,9 +95,15 @@ npm run dev
 
 ### 2. 切换网络
 
-连接钱包后，确保切换到 **Foundry (31337)** 网络：
+连接钱包后，确保切换到正确的网络：
 
 ![集成appkit后使用walletconnect连接网络再切换](./集成appkit后使用walletconnect连接网络再切换.png)
+
+支持的网络：
+- **Foundry (31337)** - 本地测试链（默认）
+- **Sepolia (11155111)** - 以太坊测试网
+- **Polygon (137)** - Polygon 主网
+- **Optimism (10)** - Optimism 主网（新增）
 
 如果使用 WalletConnect 连接，需要在钱包 App 中切换网络。
 

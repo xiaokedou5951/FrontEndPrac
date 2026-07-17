@@ -57,7 +57,23 @@ const appKitPolygon = defineChain({
   testnet: false,
 });
 
-export const networks = [appKitFoundry, appKitSepolia, appKitPolygon] as [
+const appKitOptimism = defineChain({
+  id: 10,
+  caipNetworkId: "eip155:10",
+  chainNamespace: "eip155",
+  name: "OP Mainnet",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+  rpcUrls: {
+    default: { http: ["https://mainnet.optimism.io"] },
+    public: { http: ["https://mainnet.optimism.io"] },
+  },
+  blockExplorers: {
+    default: { name: "Optimistic Etherscan", url: "https://optimistic.etherscan.io" },
+  },
+  testnet: false,
+});
+
+export const networks = [appKitFoundry, appKitSepolia, appKitPolygon, appKitOptimism] as [
   AppKitNetwork,
   ...AppKitNetwork[],
 ];
