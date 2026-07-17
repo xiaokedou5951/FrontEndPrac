@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { useWallet } from "@/context/WalletContext";
 import { Card } from "@/components/ui/Card";
@@ -47,15 +47,20 @@ export function CancelCard({ refresh }: Props) {
     }
   };
 
-  if (isConfirmed && txHash) {
-    setResult("已取消上架");
-    setListingId("");
-    refresh();
-  }
+  // 使用 useEffect 处理交易确认和错误状态
+  useEffect(() => {
+    if (isConfirmed && txHash) {
+      setResult("已取消上架");
+      setListingId("");
+      refresh();
+    }
+  }, [isConfirmed, txHash, refresh]);
 
-  if (error) {
-    setTxError(error.message);
-  }
+  useEffect(() => {
+    if (error) {
+      setTxError(error.message);
+    }
+  }, [error]);
 
   return (
     <Card title="取消上架">

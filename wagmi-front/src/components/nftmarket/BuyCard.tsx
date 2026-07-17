@@ -105,22 +105,27 @@ export function BuyCard({ metadata, listings, refresh }: Props) {
     }
   };
 
-  if (isConfirmed && txHash) {
-    if (action === "approve") {
-      fetchAllowance();
-    } else {
-      setResult("购买成功");
-      setListingId("");
-      refresh();
-      fetchAllowance();
+  // 使用 useEffect 处理交易确认和错误状态
+  useEffect(() => {
+    if (isConfirmed && txHash) {
+      if (action === "approve") {
+        fetchAllowance();
+      } else {
+        setResult("购买成功");
+        setListingId("");
+        refresh();
+        fetchAllowance();
+      }
+      setAction(null);
     }
-    setAction(null);
-  }
+  }, [isConfirmed, txHash, action, refresh, fetchAllowance]);
 
-  if (error) {
-    setTxError(error.message);
-    setAction(null);
-  }
+  useEffect(() => {
+    if (error) {
+      setTxError(error.message);
+      setAction(null);
+    }
+  }, [error]);
 
   const canBuy =
     !!account &&

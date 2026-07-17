@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { isAddress } from "viem";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { useWallet } from "@/context/WalletContext";
@@ -45,14 +45,19 @@ export function ApproveNFTCard() {
     }
   };
 
-  if (isConfirmed && txHash) {
-    setResult("已为市场授权该 NFT 合约的全部 Token");
-    setNftContract("");
-  }
+  // 使用 useEffect 处理交易确认和错误状态
+  useEffect(() => {
+    if (isConfirmed && txHash) {
+      setResult("已为市场授权该 NFT 合约的全部 Token");
+      setNftContract("");
+    }
+  }, [isConfirmed, txHash]);
 
-  if (error) {
-    setTxError(error.message);
-  }
+  useEffect(() => {
+    if (error) {
+      setTxError(error.message);
+    }
+  }, [error]);
 
   return (
     <Card title="授权 NFT 给市场（卖家）">

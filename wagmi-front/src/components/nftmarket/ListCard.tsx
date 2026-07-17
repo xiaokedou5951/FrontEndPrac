@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { isAddress, type Address } from "viem";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { useWallet } from "@/context/WalletContext";
@@ -66,17 +66,22 @@ export function ListCard({ metadata, refresh }: Props) {
     }
   };
 
-  if (isConfirmed && txHash) {
-    setResult("上架成功，listingId 请见下方事件日志");
-    setNftContract("");
-    setTokenId("");
-    setPrice("");
-    refresh();
-  }
+  // 使用 useEffect 处理交易确认和错误状态
+  useEffect(() => {
+    if (isConfirmed && txHash) {
+      setResult("上架成功，listingId 请见下方事件日志");
+      setNftContract("");
+      setTokenId("");
+      setPrice("");
+      refresh();
+    }
+  }, [isConfirmed, txHash, refresh]);
 
-  if (error) {
-    setTxError(error.message);
-  }
+  useEffect(() => {
+    if (error) {
+      setTxError(error.message);
+    }
+  }, [error]);
 
   return (
     <Card title="上架 NFT">
