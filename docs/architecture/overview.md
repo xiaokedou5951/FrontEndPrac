@@ -62,16 +62,20 @@ Web3 前端实战项目，核心目标是学习链上合约交互。包含两套
 {viem,wagmi}-front/src/
 ├── app/                  # Next.js App Router 页面
 │   ├── tokenbank/        # TokenBank 页面
-│   └── nft-market/       # NFTMarket 页面
+│   ├── nft-market/       # NFTMarket 页面
+│   └── nft-market-white/ # NFTMarketPermit 白名单购买页面 (wagmi-front)
 ├── components/
 │   ├── tokenbank/        # TokenBank 组件 (DepositCard, WithdrawCard...)
 │   ├── nftmarket/        # NFTMarket 组件 (ListCard, BuyCard...)
+│   ├── nftmarket-permit/ # NFTMarketPermit 组件 (SignPermitCard, PermitBuyCard...)
 │   ├── shared/           # WalletBar
 │   └── ui/               # 通用 UI (Button, Card, Input)
 ├── config/               # 合约地址、链配置
 ├── context/              # WalletContext
 ├── contracts/            # ABI 定义 (手写 TypeScript)
 ├── hooks/                # 自定义 Hooks (数据读取、事件监听)
+│   ├── nftmarket/        # NFTMarket hooks
+│   └── nftmarket-permit/ # NFTMarketPermit hooks
 └── lib/                  # viem 客户端 / AppKit 初始化 / 工具函数
 ```
 
@@ -81,3 +85,4 @@ Web3 前端实战项目，核心目标是学习链上合约交互。包含两套
 2. **ABI 手写而非自动生成**：合约规模小，手写 `as const` ABI 更直观，避免引入代码生成依赖
 3. **viem-front 单链 vs wagmi-front 多链**：前者专注最小实现，后者探索多链切换场景
 4. **NFTMarketPermit 独立合约而非继承**：避免修改已部署的 NFTMarket，同时演示 EIP-712 签名机制
+5. **白名单页面独立而非共用**：NFTMarketPermit 合约地址/ABI 不同于 NFTMarket，独立组件更清晰，避免条件分支

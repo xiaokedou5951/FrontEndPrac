@@ -105,6 +105,7 @@ NEXT_PUBLIC_REOWN_PROJECT_ID=<从 https://cloud.reown.com 获取>
 NEXT_PUBLIC_TOKEN_ADDRESS_LOCAL=0x...
 NEXT_PUBLIC_TOKENBANK_ADDRESS_LOCAL=0x...
 NEXT_PUBLIC_NFT_MARKET_ADDRESS_LOCAL=0x...
+NEXT_PUBLIC_NFT_MARKET_PERMIT_ADDRESS_LOCAL=0x...
 NEXT_PUBLIC_SIMPLE_NFT_ADDRESS_LOCAL=0x...
 ```
 
@@ -131,6 +132,7 @@ npm run dev
 3. 导入 anvil 账户私钥到 MetaMask（用于本地测试代币）
 4. TokenBank 页面：查看余额 → 授权 → 存款 → 查看存款 → 取款
 5. NFTMarket 页面：Mint NFT → 授权 NFT → 上架 → 购买
+6. NFTMarketPermit 页面：Mint NFT → 授权 NFT → 上架 → 项目方签名 → 白名单购买
 
 ## 部署到测试网（Sepolia）
 
@@ -178,6 +180,7 @@ NEXT_PUBLIC_TOKENBANK_ADDRESS=<Sepolia 上的 TokenBank 地址>
 NEXT_PUBLIC_TOKEN_ADDRESS_SEPOLIA=0x...
 NEXT_PUBLIC_TOKENBANK_ADDRESS_SEPOLIA=0x...
 NEXT_PUBLIC_NFT_MARKET_ADDRESS_SEPOLIA=0x...
+NEXT_PUBLIC_NFT_MARKET_PERMIT_ADDRESS_SEPOLIA=0x...
 NEXT_PUBLIC_SIMPLE_NFT_ADDRESS_SEPOLIA=0x...
 ```
 
@@ -189,6 +192,10 @@ cast call <TokenBank地址> "token()(address)" --rpc-url sepolia
 
 # 验证 NFTMarket 的 paymentToken
 cast call <NFTMarket地址> "paymentToken()(address)" --rpc-url sepolia
+
+# 验证 NFTMarketPermit 的 paymentToken 和 signer
+cast call <NFTMarketPermit地址> "paymentToken()(address)" --rpc-url sepolia
+cast call <NFTMarketPermit地址> "signer()(address)" --rpc-url sepolia
 ```
 
 ## 合约运行测试

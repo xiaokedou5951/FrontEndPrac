@@ -52,6 +52,27 @@ NFTMarket 的 `buyNFT` 对所有用户开放。NFTMarketPermit 通过 EIP-712 �
 
 ## 前端集成要点
 
+### wagmi-front 白名单购买页面（已实现）
+
+**页面路由**：`/nft-market-white`
+
+**核心组件**：
+
+| 组件 | 职责 |
+|------|------|
+| `SignPermitCard` | 项目方签名生成：输入 buyer + listingId → `walletClient.signTypedData` → 输出 65 字节 hex 签名 + 自动拆分 v/r/s + 一键复制 |
+| `PermitBuyCard` | 白名单许可购买：输入 listingId + 签名（完整 hex 或手动 v/r/s）→ 检查 ERC20 授权 → `permitBuy(listingId, v, r, s)` |
+| `SignerInfoCard` | 显示合约 `signer()` 地址，告知用户哪个地址是项目方签名地址 |
+| `ListCard` | 上架 NFT（逻辑同 NFTMarket） |
+| `CancelCard` | 取消上架 |
+| `ApproveNFTCard` | 授权 NFT 给市场合约 |
+| `ListingsTable` | 活跃上架列表（点击行可填入 PermitBuyCard 的 listingId） |
+| `EventLogCard` | 链上事件日志 |
+
+**签名输入模式**（PermitBuyCard）：
+- 完整签名模式：粘帖 65 字节 hex 字符串，自动拆分为 v, r, s
+- 手动模式：分别输入 v, r, s 三个字段
+
 ### 签名构造（项目方后端或脚本）
 
 ```typescript

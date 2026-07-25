@@ -118,6 +118,60 @@ useListings / useListingsWagmi
 
 viem-front 轮询 6s 刷新；wagmi-front 由 React Query 的 refetch 机制管理。
 
+## NFTMarketPermit 数据流（wagmi-front）
+
+### 白名单签名生成流程（SignPermitCard）
+
+```
+项目方填写 buyer + listingId → SignPermitCard
+    │
+    ├─ 从合约读取 signer() 地址
+    ├─ 检查当前钱包 === signer?
+    │   └─ 否 → 提示"当前钱包不是项目方签名地址"
+    │
+    └─ 调用 walletClient.signTypedData({
+         domain: { name: "NFTMarketPermit", chainId, verifyingContract },
+         primaryType: "PermitBuy",
+         types: { PermitBuy: [{ name: "buyer", type: "address" }, { name: "listingId", type: "uint256" }] },
+         message: { buyer, listingId }
+       })
+       → 输出 65 字节 hex 签名
+       → 自动拆分为 v, r, s 显示
+       → 一键复制签名
+```
+
+### 白名单许可购买流程（PermitBuyCard）
+
+```
+买家输入 listingId + 签名 → PermitBuyCard
+    │
+    ├─ 签名输入模式：
+    │   ├─ 完整签名：粘帖 65 字节 hex → 自动拆分 v, r, s
+    │   └─ 手动模式：分别输入 v, r, s
+    │
+    ├─ 检查 ERC20 授权
+    │   └─ allowance < price → 提示先授权: ERC20.approve(marketPermit, price)
+    │
+    └─ 调用 NFTMarketPermit.permitBuy(listingId, v, r, s)
+         walletClient.writeContract({ nftMarketPermitAbi, permitBuy })
+         等待交易确认 → 触发 refetch:
+           - useListingsWagmi refetch (listing 变为非活跃)
+           - useNFTMarketPermitEventsWagmi 收到 NFTSold 事件
+           - useTokenBalance refetch (代币减少)
+```
+
+### 端到端流程
+
+```
+SignPermitCard 生成签名 → 复制 → PermitBuyCard 粘帖 → 购买成功
+```
+
+### 事件监听与 Listings 获取
+
+与 NFTMarket 完全一致，仅替换为 NFTMarketPermit 的 ABI 和合约地址：
+- `useListingsWagmi`（from `hooks/nftmarket-permit/`）
+- `useNFTMarketPermitEventsWagmi`（from `hooks/nftmarket-permit/`）
+
 ## 钱包状态流
 
 ### viem-front

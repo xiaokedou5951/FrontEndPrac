@@ -96,6 +96,9 @@ useWatchContractEvent() → 轮询订阅新事件 (2s)
 | NFTMarket 事件日志 | EventLogCard + useNFTMarketEvents | EventLogCard + useNFTMarketEventsWagmi |
 | NFTMarket 挂单列表 | ListingsTable + useListings | ListingsTable + useListingsWagmi |
 | NFT 授权 | ApproveNFTCard | ApproveNFTCard |
+| NFTMarketPermit 签名生成 | （尚未实现） | SignPermitCard |
+| NFTMarketPermit 白名单购买 | （尚未实现） | PermitBuyCard |
+| NFTMarketPermit 签名地址展示 | （尚未实现） | SignerInfoCard |
 | 多链切换 | 不支持 | 支持 (AppKit) |
 | Token 元数据 | useTokenMetadata | useTokenMetadataWagmi |
 
@@ -103,6 +106,6 @@ useWatchContractEvent() → 轮询订阅新事件 (2s)
 
 1. **合约地址配置方式**：viem-front 用 `process.env.NEXT_PUBLIC_*` 直接读取；wagmi-front 按 chainId 分发 `get*Address(chainId)`
 2. **publicClient 来源**：viem-front 手动 `createPublicClient`；wagmi-front 从 `usePublicClient()` 获取
-3. **NFTMarketPermit 前端**：两套前端均未实现 permitBuy 交互页面
+3. **NFTMarketPermit 前端**：wagmi-front 已实现完整的白名单签名生成（SignPermitCard）和许可购买（PermitBuyCard）页面；viem-front 尚未实现
 4. **TokenBank 页面**：viem-front 有完整实现；wagmi-front 尚未实现
 5. **部署脚本**：viem-front 写 `NEXT_PUBLIC_TOKEN_ADDRESS`；wagmi-front 写 `NEXT_PUBLIC_TOKEN_ADDRESS_LOCAL`（带链后缀）

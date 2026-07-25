@@ -11,6 +11,7 @@ ABI 以 TypeScript 常量手写，位于 `src/contracts/` 目录：
 | `erc20Abi.ts` | ERC20 标准接口 (balanceOf / approve / allowance / transfer / transferFrom / name / symbol / decimals) | 相同 |
 | `tokenBankAbi.ts` | TokenBank 完整 ABI (deposit / withdraw / balanceOf / deposits / token + Deposit/Withdraw 事件 + SafeERC20FailedOperation error) | 相同 |
 | `nftMarketAbi.ts` | NFTMarket ABI + erc721Abi + nftMarketEvents | 相同 |
+| `nftMarketPermitAbi.ts` | NFTMarketPermit ABI（含 permitBuy / signer / domainSeparator / PERMIT_TYPEHASH）+ erc721Abi + nftMarketPermitEvents | wagmi-front 独有 |
 
 ### 同步规则
 
@@ -68,6 +69,7 @@ export function getTokenAddress(chainId: number): Address | null {
 | MyERC20 | `NEXT_PUBLIC_TOKEN_ADDRESS` | `NEXT_PUBLIC_TOKEN_ADDRESS_{LOCAL,SEPOLIA,POLYGON,OPTIMISM}` |
 | TokenBank | `NEXT_PUBLIC_TOKENBANK_ADDRESS` | `NEXT_PUBLIC_TOKENBANK_ADDRESS_{LOCAL,...}` |
 | NFTMarket | `NEXT_PUBLIC_NFT_MARKET_ADDRESS` | `NEXT_PUBLIC_NFT_MARKET_ADDRESS_{LOCAL,...}` |
+| NFTMarketPermit | — | `NEXT_PUBLIC_NFT_MARKET_PERMIT_ADDRESS_{LOCAL,...}` |
 | SimpleNft | `NEXT_PUBLIC_SIMPLE_NFT_ADDRESS` | `NEXT_PUBLIC_SIMPLE_NFT_ADDRESS_{LOCAL,...}` |
 
 ## 配置校验
@@ -106,6 +108,6 @@ export function getConfigError(chainId: number): string | null { ... }  // 含�
 ## 关键约束
 
 1. **TokenBank.token() 必须等于 NEXT_PUBLIC_TOKEN_ADDRESS**：否则存款时 `transferFrom` 会失败。部署脚本在部署后会链上回读校验。
-2. **NFTMarket.paymentToken() 必须等于 NEXT_PUBLIC_TOKEN_ADDRESS**：同理。
+2. **NFTMarket / NFTMarketPermit.paymentToken() 必须等于 NEXT_PUBLIC_TOKEN_ADDRESS**：同理。
 3. **wagmi-front 的 AppKit 需要 NEXT_PUBLIC_REOWN_PROJECT_ID**：从 https://cloud.reown.com 获取，缺失时应用无法启动。
 4. **viem-front 的 RPC URL 默认指向本地 anvil**：生产环境需通过 `NEXT_PUBLIC_RPC_URL` 覆盖。
