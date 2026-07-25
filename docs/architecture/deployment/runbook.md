@@ -27,7 +27,7 @@ anvil
 ```bash
 cd viem-front
 ./scripts/deploy-contracts.sh
-# 自动部署 MyERC20 → TokenBank → NFTMarket → SimpleNft
+# 自动部署 MyERC20 → TokenBank → NFTMarket → NFTMarketPermit → SimpleNft
 # 自动将地址写入 viem-front/.env.local
 ```
 
@@ -36,7 +36,7 @@ cd viem-front
 ```bash
 cd wagmi-front
 ./scripts/deploy-contracts.sh
-# 同上，但写入 NEXT_PUBLIC_*_LOCAL 后缀的环境变量
+# 同上，但写入 NEXT_PUBLIC_*_LOCAL 后缀的环境变量（含 NFTMarketPermit）
 ```
 
 脚本默认使用 anvil 账户 #0 私钥，仅用于本地测试。
@@ -59,7 +59,7 @@ forge script script/NFTMarket.s.sol --rpc-url local --broadcast
 # 4. 部署 SimpleNft
 forge script script/SimpleNft.s.sol --rpc-url local --broadcast
 
-# 5. (可选) 部署 NFTMarketPermit
+# 5. 部署 NFTMarketPermit（需先设置 SIGNER_ADDRESS）
 export SIGNER_ADDRESS=<项目方签名地址>
 forge script script/NFTMarketPermit.s.sol --rpc-url local --broadcast
 ```
@@ -80,6 +80,7 @@ cp .env.local.example .env.local
 NEXT_PUBLIC_TOKEN_ADDRESS=0x...
 NEXT_PUBLIC_TOKENBANK_ADDRESS=0x...
 NEXT_PUBLIC_NFT_MARKET_ADDRESS=0x...
+NEXT_PUBLIC_NFT_MARKET_PERMIT_ADDRESS=0x...
 NEXT_PUBLIC_SIMPLE_NFT_ADDRESS=0x...
 ```
 
@@ -159,6 +160,9 @@ forge script script/MyERC20.s.sol --rpc-url sepolia --broadcast
 forge script script/TokenBank.s.sol --rpc-url sepolia --broadcast
 forge script script/NFTMarket.s.sol --rpc-url sepolia --broadcast
 forge script script/SimpleNft.s.sol --rpc-url sepolia --broadcast
+
+# NFTMarketPermit（需先设置 SIGNER_ADDRESS）
+forge script script/NFTMarketPermit.s.sol --rpc-url sepolia --broadcast
 ```
 
 ### 3. 更新前端环境变量
@@ -171,6 +175,8 @@ NEXT_PUBLIC_RPC_URL=https://sepolia.infura.io/v3/<KEY>
 NEXT_PUBLIC_CHAIN_ID=11155111
 NEXT_PUBLIC_TOKEN_ADDRESS=<Sepolia 上的 MyERC20 地址>
 NEXT_PUBLIC_TOKENBANK_ADDRESS=<Sepolia 上的 TokenBank 地址>
+NEXT_PUBLIC_NFT_MARKET_ADDRESS=<Sepolia 上的 NFTMarket 地址>
+NEXT_PUBLIC_NFT_MARKET_PERMIT_ADDRESS=<Sepolia 上的 NFTMarketPermit 地址>
 ```
 
 **wagmi-front：**

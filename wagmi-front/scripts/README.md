@@ -4,20 +4,21 @@
 
 | 脚本 | 用途 |
 | --- | --- |
-| [`deploy-contracts.sh`](./deploy-contracts.sh) | 一键部署 `contracts/` 下的 4 个合约，并把地址写回 `viem-front/.env.local` |
+| [`deploy-contracts.sh`](./deploy-contracts.sh) | 一键部署 `contracts/` 下的 5 个合约，并把地址写回 `viem-front/.env.local` |
 
 ---
 
 ## deploy-contracts.sh
 
-一条命令完成「部署合约 → 提取地址 → 写回 `.env.local` → 链上回读校验」全流程，避免手动跑 4 条 `forge script` 再抠地址改配置。
+一条命令完成「部署合约 → 提取地址 → 写回 `.env.local` → 链上回读校验」全流程，避免手动跑 5 条 `forge script` 再抠地址改配置。
 
 ### 部署顺序（存在依赖关系）
 
 1. **MyERC20** — 无前置依赖，构造时向部署者铸造 1,000,000 * 1e18
 2. **TokenBank** — 构造参数 `TOKEN_ADDRESS` = 上一步 MyERC20 地址
 3. **NFTMarket** — 构造参数 `TOKEN_ADDRESS` = MyERC20 地址（作为支付代币）
-4. **SimpleNft** — 无构造参数
+4. **NFTMarketPermit** — 构造参数 `TOKEN_ADDRESS` + `SIGNER_ADDRESS`（白名单签名地址）
+5. **SimpleNft** — 无构造参数
 
 ### 依赖
 
@@ -36,13 +37,14 @@ cd viem-front
 ./scripts/deploy-contracts.sh
 ```
 
-成功后会在 `.env.local` 中更新以下 4 个变量：
+成功后会在 `.env.local` 中更新以下 5 个变量：
 
 ```
-NEXT_PUBLIC_TOKEN_ADDRESS_LOCAL        = MyERC20    合约地址
-NEXT_PUBLIC_TOKENBANK_ADDRESS_LOCAL    = TokenBank  合约地址
-NEXT_PUBLIC_NFT_MARKET_ADDRESS_LOCAL   = NFTMarket  合约地址
-NEXT_PUBLIC_SIMPLE_NFT_ADDRESS_LOCAL   = SimpleNft  合约地址
+NEXT_PUBLIC_TOKEN_ADDRESS_LOCAL              = MyERC20         合约地址
+NEXT_PUBLIC_TOKENBANK_ADDRESS_LOCAL          = TokenBank       合约地址
+NEXT_PUBLIC_NFT_MARKET_ADDRESS_LOCAL         = NFTMarket       合约地址
+NEXT_PUBLIC_NFT_MARKET_PERMIT_ADDRESS_LOCAL  = NFTMarketPermit 合约地址
+NEXT_PUBLIC_SIMPLE_NFT_ADDRESS_LOCAL         = SimpleNft       合约地址
 ```
 
 > 写入后会提示重启 `npm run dev` 使新地址生效。
@@ -57,6 +59,7 @@ NEXT_PUBLIC_SIMPLE_NFT_ADDRESS_LOCAL   = SimpleNft  合约地址
 | `RPC_URL` | 链 RPC 端点 | `http://127.0.0.1:8545` |
 | `TOKEN_NAME` | MyERC20 名称 | `MyToken` |
 | `TOKEN_SYMBOL` | MyERC20 符号 | `MTK` |
+| `SIGNER_ADDRESS` | NFTMarketPermit 白名单签名地址 | anvil 账户 #0 的地址 |
 
 > ⚠️ `PRIVATE_KEY` 默认值仅供本地 anvil 测试。部署到 Sepolia 等公网测试链/主网时，请务必通过环境变量或 `contracts/.env` 覆盖为自己的私钥，切勿把真实私钥提交到版本控制。
 
@@ -78,17 +81,19 @@ TOKEN_NAME="Prac Token" TOKEN_SYMBOL=FEP ./scripts/deploy-contracts.sh
 ### 脚本流程
 
 1. **前置检查** — 确认 `forge` / `cast` / `jq` 已安装、`contracts/` 目录与 `foundry.toml` 存在
-2. **加载配置** — 按上述优先级读取 4 个环境变量
+2. **加载配置** — 按上述优先级读取 5 个环境变量
 3. **探测 RPC** — `cast chain-id` 确认节点在线并动态获取 chainId（避免硬编码 31337）
-4. **依次部署 4 个合约** — 每个 `forge script ... --broadcast --slow`，失败时打印 `/tmp/deploy-*.log` 日志并退出
+4. **依次部署 5 个合约** — 每个 `forge script ... --broadcast --slow`，失败时打印 `/tmp/deploy-*.log` 日志并退出
 5. **提取地址** — 用 `jq` 从 `contracts/broadcast/<Script>.s.sol/<chainId>/run-latest.json` 读取 `.receipts[0].contractAddress`
 6. **链上回读校验**（warn-only，失败不阻断）
    - `cast call TokenBank.token()` 应回等于 MyERC20 地址
    - `cast call NFTMarket.paymentToken()` 应回等于 MyERC20 地址
+   - `cast call NFTMarketPermit.paymentToken()` 应回等于 MyERC20 地址
+   - `cast call NFTMarketPermit.signer()` 应回等于 SIGNER_ADDRESS
 7. **更新 `.env.local`**
    - 文件不存在 → 从 `.env.local.example` 复制一份
    - 文件已存在 → 先备份为 `.env.local.bak.YYYYMMDD-HHMMSS`
-   - 用 `awk` 替换 4 行 `KEY=value`，保留其他注释与配置；若某 key 不存在则追加
+   - 用 `awk` 替换 5 行 `KEY=value`，保留其他注释与配置；若某 key 不存在则追加
 8. **打印汇总表** 与重启提示
 
 ### .env.local 写入效果
