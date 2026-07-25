@@ -26,7 +26,6 @@ interface IERC721 {
 
 // 扩展的ERC20接口，添加带有回调功能的转账函数
 interface IExtendedERC20 is IERC20 {
-    function transferWithCallback(address _to, uint256 _value) external returns (bool);
     function transferWithCallbackAndData(address _to, uint256 _value, bytes calldata _data) external returns (bool);
 }
 
