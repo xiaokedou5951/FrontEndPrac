@@ -24,6 +24,18 @@ export default function HomePage() {
             上架 / 购买 / 取消 NFT，并实时监听链上上架与买卖事件
           </p>
         </Link>
+
+        <Link
+          href="/nft-market-white"
+          className="group rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition hover:border-indigo-300 hover:shadow-md"
+        >
+          <h2 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">
+            NFT Market (白名单) →
+          </h2>
+          <p className="mt-2 text-sm text-gray-500">
+            项目方 EIP-712 签名授权白名单用户购买 NFT，签名生成 + 许可购买
+          </p>
+        </Link>
       </div>
     </main>
   );

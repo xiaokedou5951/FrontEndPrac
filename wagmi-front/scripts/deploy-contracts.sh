@@ -1,21 +1,23 @@
 #!/usr/bin/env bash
 # viem-front/scripts/deploy-contracts.sh
 #
-# 一键部署 contracts/ 下的 4 个合约，并把地址写回 viem-front/.env.local
+# 一键部署 contracts/ 下的 5 个合约，并把地址写回 viem-front/.env.local
 #
 # 部署顺序（存在依赖关系）：
-#   1. MyERC20    — 无前置依赖，构造时向部署者铸造 1,000,000 * 1e18
-#   2. TokenBank  — 构造参数 TOKEN_ADDRESS = MyERC20 地址
-#   3. NFTMarket  — 构造参数 TOKEN_ADDRESS = MyERC20 地址（作为支付代币）
-#   4. SimpleNft  — 无构造参数
+#   1. MyERC20         — 无前置依赖，构造时向部署者铸造 1,000,000 * 1e18
+#   2. TokenBank       — 构造参数 TOKEN_ADDRESS = MyERC20 地址
+#   3. NFTMarket       — 构造参数 TOKEN_ADDRESS = MyERC20 地址（作为支付代币）
+#   4. NFTMarketPermit — 构造参数 TOKEN_ADDRESS + SIGNER_ADDRESS（白名单签名地址）
+#   5. SimpleNft       — 无构造参数
 #
 # 依赖：forge / cast / jq（Foundry 工具链 + jq）
 #
 # 环境变量优先级：当前 shell 已导出的环境变量 > contracts/.env > 内置默认值
 #   PRIVATE_KEY  部署私钥（默认 anvil 账户 #0，仅本地测试用）
 #   RPC_URL      链 RPC（默认 http://127.0.0.1:8545）
-#   TOKEN_NAME   MyERC20 名称（默认 MyToken）
-#   TOKEN_SYMBOL MyERC20 符号（默认 MTK）
+#   TOKEN_NAME    MyERC20 名称（默认 MyToken）
+#   TOKEN_SYMBOL  MyERC20 符号（默认 MTK）
+#   SIGNER_ADDRESS NFTMarketPermit 白名单签名地址（默认 anvil 账户 #0 地址）
 #
 # 用法：
 #   ./scripts/deploy-contracts.sh                            # 全部使用默认值
@@ -36,6 +38,8 @@ DEFAULT_PRIVATE_KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf
 DEFAULT_RPC_URL="http://127.0.0.1:8545"
 DEFAULT_TOKEN_NAME="MyToken"
 DEFAULT_TOKEN_SYMBOL="MTK"
+# anvil 默认账户 #0 的地址（与 DEFAULT_PRIVATE_KEY 对应）
+DEFAULT_SIGNER_ADDRESS="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
 
 # -------------------- 工具函数 --------------------
 # 注意：所有日志函数都写到 stderr，stdout 只留给数据输出
@@ -60,7 +64,7 @@ load_var() {
   fi
   if [ -f "$CONTRACTS_DIR/.env" ]; then
     local val
-    val=$(grep -E "^${key}=" "$CONTRACTS_DIR/.env" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '\r')
+    val=$(grep -E "^${key}=" "$CONTRACTS_DIR/.env" 2>/dev/null | head -1 | cut -d= -f2- | tr -d '\r') || true
     if [ -n "$val" ]; then
       export "$key=$val"
       return
@@ -124,13 +128,15 @@ require_cmd jq
 
 load_var PRIVATE_KEY "$DEFAULT_PRIVATE_KEY"
 load_var RPC_URL      "$DEFAULT_RPC_URL"
-load_var TOKEN_NAME   "$DEFAULT_TOKEN_NAME"
-load_var TOKEN_SYMBOL "$DEFAULT_TOKEN_SYMBOL"
+load_var TOKEN_NAME    "$DEFAULT_TOKEN_NAME"
+load_var TOKEN_SYMBOL  "$DEFAULT_TOKEN_SYMBOL"
+load_var SIGNER_ADDRESS "$DEFAULT_SIGNER_ADDRESS"
 
 ok "RPC_URL      = $RPC_URL"
-ok "TOKEN_NAME   = $TOKEN_NAME"
-ok "TOKEN_SYMBOL = $TOKEN_SYMBOL"
-ok "PRIVATE_KEY  = ${PRIVATE_KEY:0:10}...（已隐藏）"
+ok "TOKEN_NAME     = $TOKEN_NAME"
+ok "TOKEN_SYMBOL   = $TOKEN_SYMBOL"
+ok "SIGNER_ADDRESS = $SIGNER_ADDRESS"
+ok "PRIVATE_KEY    = ${PRIVATE_KEY:0:10}...（已隐藏）"
 
 # -------------------- 探测 RPC --------------------
 log "探测 RPC 节点 $RPC_URL"
@@ -141,10 +147,10 @@ CHAIN_ID=$(cast chain-id --rpc-url "$RPC_URL" | tr -d '\n')
 ok "链已连接，chainId = $CHAIN_ID"
 
 # 导出给 forge script 用的变量
-export PRIVATE_KEY RPC_URL TOKEN_NAME TOKEN_SYMBOL
+export PRIVATE_KEY RPC_URL TOKEN_NAME TOKEN_SYMBOL SIGNER_ADDRESS
 
 # -------------------- 部署 --------------------
-log "开始部署 4 个合约到 $RPC_URL (chainId=$CHAIN_ID)"
+log "开始部署 5 个合约到 $RPC_URL (chainId=$CHAIN_ID)"
 
 # 1. MyERC20（无前置依赖）
 TOKEN_ADDRESS=$(deploy MyERC20)
@@ -156,7 +162,10 @@ TOKENBANK_ADDRESS=$(deploy TokenBank)
 # 3. NFTMarket（构造参数 = TOKEN_ADDRESS，作为支付代币）
 NFT_MARKET_ADDRESS=$(deploy NFTMarket)
 
-# 4. SimpleNft（无构造参数）
+# 4. NFTMarketPermit（构造参数 = TOKEN_ADDRESS + SIGNER_ADDRESS）
+NFT_MARKET_PERMIT_ADDRESS=$(deploy NFTMarketPermit)
+
+# 5. SimpleNft（无构造参数）
 SIMPLE_NFT_ADDRESS=$(deploy SimpleNft)
 
 # -------------------- 链上回读校验（warn-only） --------------------
@@ -187,6 +196,31 @@ else
   warn "无法读取 NFTMarket.paymentToken()（跳过校验）"
 fi
 
+nmp_token=$(cast call "$NFT_MARKET_PERMIT_ADDRESS" "paymentToken()(address)" --rpc-url "$RPC_URL" 2>/dev/null || echo "")
+if [ -n "$nmp_token" ]; then
+  nmp_token_lower=$(printf '%s' "$nmp_token" | tr '[:upper:]' '[:lower:]')
+  if [ "$nmp_token_lower" = "$token_lower" ]; then
+    ok "NFTMarketPermit.paymentToken() == MyERC20 地址 ✓"
+  else
+    warn "NFTMarketPermit.paymentToken() = $nmp_token，与 MyERC20 地址 $TOKEN_ADDRESS 不一致"
+  fi
+else
+  warn "无法读取 NFTMarketPermit.paymentToken()（跳过校验）"
+fi
+
+nmp_signer=$(cast call "$NFT_MARKET_PERMIT_ADDRESS" "signer()(address)" --rpc-url "$RPC_URL" 2>/dev/null || echo "")
+if [ -n "$nmp_signer" ]; then
+  signer_lower=$(printf '%s' "$SIGNER_ADDRESS" | tr '[:upper:]' '[:lower:]')
+  nmp_signer_lower=$(printf '%s' "$nmp_signer" | tr '[:upper:]' '[:lower:]')
+  if [ "$nmp_signer_lower" = "$signer_lower" ]; then
+    ok "NFTMarketPermit.signer() == SIGNER_ADDRESS ✓"
+  else
+    warn "NFTMarketPermit.signer() = $nmp_signer，与 SIGNER_ADDRESS $SIGNER_ADDRESS 不一致"
+  fi
+else
+  warn "无法读取 NFTMarketPermit.signer()（跳过校验）"
+fi
+
 # -------------------- 处理 .env.local --------------------
 log "更新 $ENV_LOCAL"
 if [ ! -f "$ENV_LOCAL" ]; then
@@ -206,16 +240,18 @@ fi
 update_env_var "$ENV_LOCAL" "NEXT_PUBLIC_TOKEN_ADDRESS_LOCAL"       "$TOKEN_ADDRESS"
 update_env_var "$ENV_LOCAL" "NEXT_PUBLIC_TOKENBANK_ADDRESS_LOCAL"   "$TOKENBANK_ADDRESS"
 update_env_var "$ENV_LOCAL" "NEXT_PUBLIC_NFT_MARKET_ADDRESS_LOCAL"  "$NFT_MARKET_ADDRESS"
+update_env_var "$ENV_LOCAL" "NEXT_PUBLIC_NFT_MARKET_PERMIT_ADDRESS_LOCAL"  "$NFT_MARKET_PERMIT_ADDRESS"
 update_env_var "$ENV_LOCAL" "NEXT_PUBLIC_SIMPLE_NFT_ADDRESS_LOCAL"  "$SIMPLE_NFT_ADDRESS"
-ok "已写入 4 个合约地址"
+ok "已写入 5 个合约地址"
 
 # -------------------- 汇总 --------------------
 echo
 log "部署完成 ✓"
-printf  '  %-30s %s\n' "MyERC20    (NEXT_PUBLIC_TOKEN_ADDRESS)"      "$TOKEN_ADDRESS"
-printf  '  %-30s %s\n' "TokenBank  (NEXT_PUBLIC_TOKENBANK_ADDRESS)"  "$TOKENBANK_ADDRESS"
-printf  '  %-30s %s\n' "NFTMarket  (NEXT_PUBLIC_NFT_MARKET_ADDRESS)" "$NFT_MARKET_ADDRESS"
-printf  '  %-30s %s\n' "SimpleNft  (NEXT_PUBLIC_SIMPLE_NFT_ADDRESS)" "$SIMPLE_NFT_ADDRESS"
+printf  '  %-30s %s\n' "MyERC20         (NEXT_PUBLIC_TOKEN_ADDRESS)"             "$TOKEN_ADDRESS"
+printf  '  %-30s %s\n' "TokenBank       (NEXT_PUBLIC_TOKENBANK_ADDRESS)"         "$TOKENBANK_ADDRESS"
+printf  '  %-30s %s\n' "NFTMarket       (NEXT_PUBLIC_NFT_MARKET_ADDRESS)"        "$NFT_MARKET_ADDRESS"
+printf  '  %-30s %s\n' "NFTMarketPermit (NEXT_PUBLIC_NFT_MARKET_PERMIT_ADDRESS)" "$NFT_MARKET_PERMIT_ADDRESS"
+printf  '  %-30s %s\n' "SimpleNft       (NEXT_PUBLIC_SIMPLE_NFT_ADDRESS)"        "$SIMPLE_NFT_ADDRESS"
 echo
 echo "  下一步：重启前端使新地址生效"
 echo "    cd viem-front && npm run dev"
