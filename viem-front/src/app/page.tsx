@@ -35,6 +35,18 @@ export default function HomePage() {
             上架 / 购买 / 取消 NFT，并实时监听链上上架与买卖事件
           </p>
         </Link>
+
+        <Link
+          href="/erc20-index-tx"
+          className="group rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition hover:border-indigo-300 hover:shadow-md sm:col-span-2"
+        >
+          <h2 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">
+            ERC20 转账记录 →
+          </h2>
+          <p className="mt-2 text-sm text-gray-500">
+            索引链上 ERC20 转账数据，查询并展示特定地址的转账历史记录
+          </p>
+        </Link>
       </div>
     </main>
   );
