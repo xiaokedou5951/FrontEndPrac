@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # viem-front/scripts/deploy-contracts.sh
 #
-# 一键部署 contracts/ 下的 4 个合约，并把地址写回 viem-front/.env.local
+# 一键部署 contracts/ 下的 5 个合约，并把地址写回 viem-front/.env.local
 #
 # 部署顺序（存在依赖关系）：
 #   1. MyERC20    — 无前置依赖，构造时向部署者铸造 1,000,000 * 1e18
 #   2. TokenBank  — 构造参数 TOKEN_ADDRESS = MyERC20 地址
 #   3. NFTMarket  — 构造参数 TOKEN_ADDRESS = MyERC20 地址（作为支付代币）
 #   4. SimpleNft  — 无构造参数
+#   5. esRNT      — 无前置依赖，构造时向 _locks 数组写入 11 条 LockInfo
 #
 # 依赖：forge / cast / jq（Foundry 工具链 + jq）
 #
@@ -144,7 +145,7 @@ ok "链已连接，chainId = $CHAIN_ID"
 export PRIVATE_KEY RPC_URL TOKEN_NAME TOKEN_SYMBOL
 
 # -------------------- 部署 --------------------
-log "开始部署 4 个合约到 $RPC_URL (chainId=$CHAIN_ID)"
+log "开始部署 5 个合约到 $RPC_URL (chainId=$CHAIN_ID)"
 
 # 1. MyERC20（无前置依赖）
 TOKEN_ADDRESS=$(deploy MyERC20)
@@ -158,6 +159,9 @@ NFT_MARKET_ADDRESS=$(deploy NFTMarket)
 
 # 4. SimpleNft（无构造参数）
 SIMPLE_NFT_ADDRESS=$(deploy SimpleNft)
+
+# 5. esRNT（无构造参数；构造函数内 push 11 条 _locks 数据，供 read-private-data 脚本读取）
+ESRNT_ADDRESS=$(deploy EsRNT)
 
 # -------------------- 链上回读校验（warn-only） --------------------
 log "链上回读校验"
@@ -207,7 +211,8 @@ update_env_var "$ENV_LOCAL" "NEXT_PUBLIC_TOKEN_ADDRESS"       "$TOKEN_ADDRESS"
 update_env_var "$ENV_LOCAL" "NEXT_PUBLIC_TOKENBANK_ADDRESS"   "$TOKENBANK_ADDRESS"
 update_env_var "$ENV_LOCAL" "NEXT_PUBLIC_NFT_MARKET_ADDRESS"  "$NFT_MARKET_ADDRESS"
 update_env_var "$ENV_LOCAL" "NEXT_PUBLIC_SIMPLE_NFT_ADDRESS"  "$SIMPLE_NFT_ADDRESS"
-ok "已写入 4 个合约地址"
+update_env_var "$ENV_LOCAL" "NEXT_PUBLIC_ESRNT_ADDRESS"       "$ESRNT_ADDRESS"
+ok "已写入 5 个合约地址"
 
 # -------------------- 汇总 --------------------
 echo
@@ -216,6 +221,7 @@ printf  '  %-30s %s\n' "MyERC20    (NEXT_PUBLIC_TOKEN_ADDRESS)"      "$TOKEN_ADD
 printf  '  %-30s %s\n' "TokenBank  (NEXT_PUBLIC_TOKENBANK_ADDRESS)"  "$TOKENBANK_ADDRESS"
 printf  '  %-30s %s\n' "NFTMarket  (NEXT_PUBLIC_NFT_MARKET_ADDRESS)" "$NFT_MARKET_ADDRESS"
 printf  '  %-30s %s\n' "SimpleNft  (NEXT_PUBLIC_SIMPLE_NFT_ADDRESS)" "$SIMPLE_NFT_ADDRESS"
+printf  '  %-30s %s\n' "esRNT      (NEXT_PUBLIC_ESRNT_ADDRESS)"      "$ESRNT_ADDRESS"
 echo
 echo "  下一步：重启前端使新地址生效"
 echo "    cd viem-front && npm run dev"
