@@ -1,0 +1,7 @@
+{
+  "addresses": [
+    "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+  ],
+  "note": "白名单地址清单。后端据此构建 Merkle 树并计算 root/proof。部署 AirdropMerkleNFTMarket 合约时 merkleRoot 必须等于 GET /root 返回值。默认列出 anvil 前两个测试账户便于本地演示。"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "airdrop-merkle-proof-api",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "description": "原生 Node http + 手写 Merkle 树，为前端返回白名单 proof（与 OZ commutativeKeccak256 兼容）",
+  "scripts": {
+    "start": "node server.mjs"
+  }
+}

@@ -36,6 +36,18 @@ export default function HomePage() {
             项目方 EIP-712 签名授权白名单用户购买 NFT，签名生成 + 许可购买
           </p>
         </Link>
+
+        <Link
+          href="/airdrop-merkle"
+          className="group rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition hover:border-indigo-300 hover:shadow-md"
+        >
+          <h2 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600">
+            NFT Airdrop (Merkle) →
+          </h2>
+          <p className="mt-2 text-sm text-gray-500">
+            Merkle 白名单 + EIP-2612 permit + multicall，白名单用户 50% 优惠购买 NFT
+          </p>
+        </Link>
       </div>
     </main>
   );
