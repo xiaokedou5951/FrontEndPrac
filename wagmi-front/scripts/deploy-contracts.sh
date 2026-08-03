@@ -396,8 +396,7 @@ if [ -n "$PROOF_SERVER_PID" ]; then
   echo
 fi
 if [ -n "$AIRDROP_MERKLE_MARKET_ADDRESS" ]; then
-  echo "  提示：airdrop-merkle 前端页面用 NEXT_PUBLIC_TOKEN_ADDRESS_* 读取支付代币地址，"
-  echo "        演示该页面时需将 NEXT_PUBLIC_TOKEN_ADDRESS_LOCAL 改为 MyTokenPermit 地址："
-  echo "          NEXT_PUBLIC_TOKEN_ADDRESS_LOCAL=$MY_TOKEN_PERMIT_ADDRESS"
-  echo "        （这会让 /nft-market、/nft-market-white 页面改用 MyTokenPermit，可手动切换回来）"
+  echo "  提示：airdrop-merkle 前端页面已通过 getMyTokenPermitAddress() 直接读取"
+  echo "        NEXT_PUBLIC_MY_TOKEN_PERMIT_ADDRESS_* (=$MY_TOKEN_PERMIT_ADDRESS)，"
+  echo "        无需手动切换 NEXT_PUBLIC_TOKEN_ADDRESS_*。"
 fi
