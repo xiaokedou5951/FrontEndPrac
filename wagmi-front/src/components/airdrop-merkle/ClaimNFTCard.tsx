@@ -10,7 +10,7 @@ import { formatTokenAmount } from "@/lib/viem";
 import { airdropMerkleNftMarketAbi } from "@/contracts/airdropMerkleNftMarketAbi";
 import { erc20PermitAbi } from "@/contracts/erc20PermitAbi";
 import { getAirdropMerkleAddress } from "@/config/airdropMerkle";
-import { getTokenAddress } from "@/config/shared";
+import { getMyTokenPermitAddress } from "@/config/shared";
 import { fetchProof } from "@/lib/merkleApi";
 import type { TokenMetadata } from "@/hooks/useTokenMetadataWagmi";
 import type { ListingInfo, RefreshFn } from "./types";
@@ -50,7 +50,7 @@ export function ClaimNFTCard({ metadata, listings, refresh, listingId, onListing
 
   const decimals = metadata?.decimals ?? 18;
   const symbol = metadata?.symbol ?? "TOKEN";
-  const tokenAddress = chainId ? getTokenAddress(chainId) : null;
+  const tokenAddress = chainId ? getMyTokenPermitAddress(chainId) : null;
   const marketAddress = chainId ? getAirdropMerkleAddress(chainId) : null;
 
   const listingIdNum = listingId.trim() === "" ? null : BigInt(listingId.trim());

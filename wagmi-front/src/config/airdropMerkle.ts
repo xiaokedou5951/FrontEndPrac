@@ -16,6 +16,21 @@ function getEnvAirdropMerkleAddress(chainId: number): string | undefined {
   }
 }
 
+function getEnvSimpleNftAddress(chainId: number): string | undefined {
+  switch (chainId) {
+    case foundry.id:
+      return process.env.NEXT_PUBLIC_SIMPLE_NFT_ADDRESS_LOCAL;
+    case sepolia.id:
+      return process.env.NEXT_PUBLIC_SIMPLE_NFT_ADDRESS_SEPOLIA;
+    case polygon.id:
+      return process.env.NEXT_PUBLIC_SIMPLE_NFT_ADDRESS_POLYGON;
+    case optimism.id:
+      return process.env.NEXT_PUBLIC_SIMPLE_NFT_ADDRESS_OPTIMISM;
+    default:
+      return undefined;
+  }
+}
+
 function getChainName(chainId: number): string {
   switch (chainId) {
     case foundry.id:
@@ -48,6 +63,11 @@ function getChainEnvSuffix(chainId: number): string | null {
 
 export function getAirdropMerkleAddress(chainId: number): Address | null {
   const raw = getEnvAirdropMerkleAddress(chainId);
+  return raw && isAddress(raw) ? (raw as Address) : null;
+}
+
+export function getSimpleNftAddress(chainId: number): Address | null {
+  const raw = getEnvSimpleNftAddress(chainId);
   return raw && isAddress(raw) ? (raw as Address) : null;
 }
 

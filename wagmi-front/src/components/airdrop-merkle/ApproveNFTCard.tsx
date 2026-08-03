@@ -8,12 +8,13 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { AddressInput } from "@/components/ui/AddressInput";
 import { erc721Abi } from "@/contracts/airdropMerkleNftMarketAbi";
-import { getAirdropMerkleAddress } from "@/config/airdropMerkle";
+import { getAirdropMerkleAddress, getSimpleNftAddress } from "@/config/airdropMerkle";
 
 export function ApproveNFTCard() {
   const { chainId } = useAccount();
   const { account } = useWallet();
-  const [nftContract, setNftContract] = useState("");
+  const defaultNftAddress = chainId ? getSimpleNftAddress(chainId) ?? "" : "";
+  const [nftContract, setNftContract] = useState(defaultNftAddress);
   const [txError, setTxError] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
 
@@ -56,6 +57,10 @@ export function ApproveNFTCard() {
       setTxError(error.message);
     }
   }, [error]);
+
+  useEffect(() => {
+    setNftContract(defaultNftAddress);
+  }, [defaultNftAddress]);
 
   return (
     <Card title="授权 NFT 给市场（卖家）">

@@ -2,6 +2,7 @@ import { useAccount } from "wagmi";
 import { useReadContracts } from "wagmi";
 import { erc20Abi } from "@/contracts/erc20Abi";
 import { getTokenAddress } from "@/config/shared";
+import type { Address } from "viem";
 
 export type TokenMetadata = {
   name: string;
@@ -16,30 +17,30 @@ type Return = {
   refetch: () => Promise<void>;
 };
 
-export function useTokenMetadataWagmi(enabled = true): Return {
+export function useTokenMetadataWagmi(enabled = true, tokenAddress?: Address | null): Return {
   const { chainId } = useAccount();
-  const tokenAddress = chainId ? getTokenAddress(chainId) : null;
+  const resolvedTokenAddress = tokenAddress ?? (chainId ? getTokenAddress(chainId) : null);
 
   const { data, isLoading, error, refetch } = useReadContracts({
     contracts: [
       {
-        address: tokenAddress ?? undefined,
+        address: resolvedTokenAddress ?? undefined,
         abi: erc20Abi,
         functionName: "name",
       },
       {
-        address: tokenAddress ?? undefined,
+        address: resolvedTokenAddress ?? undefined,
         abi: erc20Abi,
         functionName: "symbol",
       },
       {
-        address: tokenAddress ?? undefined,
+        address: resolvedTokenAddress ?? undefined,
         abi: erc20Abi,
         functionName: "decimals",
       },
     ],
     query: {
-      enabled: enabled && !!tokenAddress,
+      enabled: enabled && !!resolvedTokenAddress,
     },
   });
 

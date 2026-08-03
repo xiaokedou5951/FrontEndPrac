@@ -26,7 +26,27 @@ function getEnvTokenAddress(chainId: number): string | undefined {
   }
 }
 
+function getEnvMyTokenPermitAddress(chainId: number): string | undefined {
+  switch (chainId) {
+    case foundry.id:
+      return process.env.NEXT_PUBLIC_MY_TOKEN_PERMIT_ADDRESS_LOCAL;
+    case sepolia.id:
+      return process.env.NEXT_PUBLIC_MY_TOKEN_PERMIT_ADDRESS_SEPOLIA;
+    case polygon.id:
+      return process.env.NEXT_PUBLIC_MY_TOKEN_PERMIT_ADDRESS_POLYGON;
+    case optimism.id:
+      return process.env.NEXT_PUBLIC_MY_TOKEN_PERMIT_ADDRESS_OPTIMISM;
+    default:
+      return undefined;
+  }
+}
+
 export function getTokenAddress(chainId: number): Address | null {
   const raw = getEnvTokenAddress(chainId);
+  return raw && isAddress(raw) ? (raw as Address) : null;
+}
+
+export function getMyTokenPermitAddress(chainId: number): Address | null {
+  const raw = getEnvMyTokenPermitAddress(chainId);
   return raw && isAddress(raw) ? (raw as Address) : null;
 }

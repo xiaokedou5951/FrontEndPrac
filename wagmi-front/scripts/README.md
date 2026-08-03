@@ -58,7 +58,7 @@ NEXT_PUBLIC_AIRDROP_PROOF_API_BASE             = proof 后端地址（默认 htt
 
 > 写入后会提示重启 `npm run dev` 使新地址生效。
 >
-> 注意：`AirdropMerkleNFTMarket` 的 `paymentToken` 为 `MyTokenPermit`（独立变量 `NEXT_PUBLIC_MY_TOKEN_PERMIT_ADDRESS_LOCAL`），**不覆盖** `NEXT_PUBLIC_TOKEN_ADDRESS_LOCAL`。但 airdrop-merkle 前端页面通过 `NEXT_PUBLIC_TOKEN_ADDRESS_*` 读取支付代币地址，演示该页面时需手动将 `NEXT_PUBLIC_TOKEN_ADDRESS_LOCAL` 改为 `MyTokenPermit` 地址（会让 `/nft-market`、`/nft-market-white` 改用 MyTokenPermit，可手动切换回来）。
+> 注意：`AirdropMerkleNFTMarket` 的 `paymentToken` 为 `MyTokenPermit`（独立变量 `NEXT_PUBLIC_MY_TOKEN_PERMIT_ADDRESS_LOCAL`），**不覆盖** `NEXT_PUBLIC_TOKEN_ADDRESS_LOCAL`。airdrop-merkle 前端页面已通过 `getMyTokenPermitAddress()` 直接读取 `NEXT_PUBLIC_MY_TOKEN_PERMIT_ADDRESS_*`，无需手动切换 `NEXT_PUBLIC_TOKEN_ADDRESS_*`。
 
 ### 环境变量
 

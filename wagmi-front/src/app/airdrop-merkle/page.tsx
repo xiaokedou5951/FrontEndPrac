@@ -10,6 +10,7 @@ import {
   getConfigError,
 } from "@/config/airdropMerkle";
 import { useTokenMetadataWagmi } from "@/hooks/useTokenMetadataWagmi";
+import { getMyTokenPermitAddress } from "@/config/shared";
 import { useListingsWagmi } from "@/hooks/airdrop-merkle/useListingsWagmi";
 import { useAirdropMerkleEventsWagmi } from "@/hooks/airdrop-merkle/useAirdropMerkleEventsWagmi";
 import { Card } from "@/components/ui/Card";
@@ -31,7 +32,7 @@ export default function AirdropMerklePage() {
   const configError = chainId ? getConfigError(chainId) : null;
   const marketAddress = chainId ? getAirdropMerkleAddress(chainId) : null;
 
-  const metadata = useTokenMetadataWagmi(!!chainId);
+  const metadata = useTokenMetadataWagmi(!!chainId, chainId ? getMyTokenPermitAddress(chainId) : null);
   const listings = useListingsWagmi(configOk);
   const events = useAirdropMerkleEventsWagmi(configOk);
 
